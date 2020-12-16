@@ -32,6 +32,6 @@ e.g. Coldplay, Taylor Swift and Queen
 * genius api: https://docs.genius.com/
 * some ideas from this article [How to Analyze Emotions and Words of the Lyrics From your Favorite Music Artist](https://towardsdatascience.com/how-to-analyze-emotions-and-words-of-the-lyrics-from-your-favorite-music-artist-bbca10411283)
 * lyrics api: https://lyricsovh.docs.apiary.io/
-### Ideas for the future;
+### Ideas for the future:
 * Analysis of lyrics changing over time
 * Lematization of lyrics and sentiment analysis with natural language processing (NLP)
