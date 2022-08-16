@@ -4,6 +4,7 @@ from datetime import datetime, date
 
 import requests
 import musicbrainzngs
+import pandas as pd
 
 from src.data_store import RAW_LYRICS
 from src.utils.process_lyrics import clean_lyrics
@@ -65,7 +66,7 @@ def get_works(artist_id: str) -> List[dict]:
     ]
 
 
-def get_artist_data(artist_name: str):
+def get_artist_data(artist_name: str) -> List[dict]:
     artist_id = get_id_by_artist(artist)[0]
     works = get_works(artist_id)
     
@@ -73,13 +74,20 @@ def get_artist_data(artist_name: str):
         lyrics = get_lyrics("https://api.lyrics.ovh/v1/", artist_name, work["title"].lower())
         if lyrics is None:
             continue
-        work["lyrics"] = lyrics
+        work["lyrics"] = clean_lyrics(lyrics["lyrics"])
 
     return works
 
 
+def cleanse_works(works: dict) -> pd.DataFrame():
+    df = pd.DataFrame(works)
+    df = df.drop_duplicates(subset=["title"]).dropna()
+    return df.to_dict('records')
+
+
 artist = "justin bieber"
 works = get_artist_data(artist)
+cleansed = cleanse_works(works)
 
 
 
