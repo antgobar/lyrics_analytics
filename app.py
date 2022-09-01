@@ -1,9 +1,9 @@
 import sys
 
-from src.genius_api import search_artist
+from src.genius_api import search_artist, get_artist_id
 
 artist = sys.argv[1]
 print("Searching for", artist)
-works = search_artist(artist)
-
-
+artist_response = search_artist(artist)
+artist_id = get_artist_id(artist, artist_response)
+print(artist_id)
