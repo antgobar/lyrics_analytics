@@ -8,12 +8,14 @@ ACCESS_TOKEN = config["CLIENT_ACCESS_TOKEN"]
 BASE_URL = "http://api.genius.com/"
 
 
-def handle_bad_request(request_result: dict) -> None:
+def handle_request(request_result: dict) -> None:
     if request_result.status_code != 200:
+        print("Request", request_result.status_code)
         return
     
     response = request_result.json()
     if response["meta"]["status"] != 200:
+        print("Request", request_result.status_code)
         return
     return response
 
@@ -21,7 +23,7 @@ def handle_bad_request(request_result: dict) -> None:
 def search_artist(artist_name: str) -> dict:
     url = f"{BASE_URL}search?q={artist_name}&access_token={ACCESS_TOKEN}"
     result = requests.get(url)
-    artist_response = handle_bad_request(result)
+    artist_response = handle_request(result)
     if artist_response:
         print("Artist:", artist_name, True)
         return artist_response
@@ -45,10 +47,12 @@ def get_artist_id(artist_name: str, artist_response: dict) -> int:
     return
 
 
-def get_song_data_single_page(artist_id: int, page_no: int) -> tuple:
-    song_url = f"{BASE_URL}{artist_id}/songs?page={page_no}&access_token={ACCESS_TOKEN}"
-    result = requests.get(song_url)
-    aritst_id_response = handle_bad_request(result)
+def get_song_data_single_page(artist_id: int, page_no: int=1) -> tuple:
+    params = {"page": page_no}
+    headers = {'authorization': "Bearer " + ACCESS_TOKEN}
+    song_url = f"{BASE_URL}{artist_id}/songs"
+    result = requests.get(url=song_url, headers=headers, params=params)
+    aritst_id_response = handle_request(result)
     if aritst_id_response:
         return aritst_id_response, aritst_id_response["response"]["next_page"]
     else:
