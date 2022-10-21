@@ -5,7 +5,7 @@ from dotenv import dotenv_values
 
 config = dotenv_values(".env")
 ACCESS_TOKEN = config["CLIENT_ACCESS_TOKEN"]
-BASE_URL = "http://api.genius.com/"
+BASE_URL = "http://api.genius.com"
 
 
 def handle_request(request_result: dict) -> None:
@@ -21,7 +21,7 @@ def handle_request(request_result: dict) -> None:
 
 
 def search_artist(artist_name: str) -> dict:
-    url = f"{BASE_URL}search?q={artist_name}&access_token={ACCESS_TOKEN}"
+    url = f"{BASE_URL}/search?q={artist_name}&access_token={ACCESS_TOKEN}"
     result = requests.get(url)
     artist_response = handle_request(result)
     if artist_response:
@@ -48,9 +48,7 @@ def get_artist_id(artist_name: str, artist_response: dict) -> int:
 
 
 def get_song_data_single_page(artist_id: int, page_no: int=1) -> tuple:
-    params = {"page": page_no}
-    headers = {'authorization': "Bearer " + ACCESS_TOKEN}
-    song_url = f"{BASE_URL}{artist_id}/songs"
+    song_url = f"{BASE_URL}/{artist_id}/songs&access_token={ACCESS_TOKEN}"
     result = requests.get(url=song_url, headers=headers, params=params)
     aritst_id_response = handle_request(result)
     if aritst_id_response:
@@ -76,8 +74,7 @@ def get_song_data(artist_id) -> None:
 
 
 if __name__ == "__main__":
-    import sys
-    artist = sys.argv[1]
+    artist = "metallica"
     print("Searching for", artist)
     artist_response = search_artist(artist)
     artist_id = get_artist_id(artist, artist_response)
