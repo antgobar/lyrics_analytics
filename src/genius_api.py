@@ -4,7 +4,7 @@ import requests
 from dotenv import dotenv_values
 
 config = dotenv_values(".env")
-ACCESS_TOKEN = config["CLIENT_ACCESS_TOKEN"]
+ACCESS_TOKEN = config["GENIUS_CLIENT_ACCESS_TOKEN"]
 BASE_URL = "http://api.genius.com"
 
 
@@ -21,8 +21,12 @@ def handle_request(request_result: dict) -> None:
 
 
 def search_artist(artist_name: str) -> dict:
-    url = f"{BASE_URL}/search?q={artist_name}&access_token={ACCESS_TOKEN}"
-    result = requests.get(url)
+    url = f"{BASE_URL}/search"
+    params = {
+        "q": artist_name,
+        "access_token": ACCESS_TOKEN
+    }
+    result = requests.get(url=url, params=params)
     artist_response = handle_request(result)
     if artist_response:
         print("Artist:", artist_name, True)
@@ -48,8 +52,11 @@ def get_artist_id(artist_name: str, artist_response: dict) -> int:
 
 
 def get_song_data_single_page(artist_id: int, page_no: int=1) -> tuple:
-    song_url = f"{BASE_URL}/{artist_id}/songs&access_token={ACCESS_TOKEN}"
-    result = requests.get(url=song_url, headers=headers, params=params)
+    url = f"{BASE_URL}/artists/{artist_id}/songs"
+    params = {
+        "access_token": ACCESS_TOKEN
+    }
+    result = requests.get(url=url, params=params)
     aritst_id_response = handle_request(result)
     if aritst_id_response:
         return aritst_id_response, aritst_id_response["response"]["next_page"]
@@ -79,3 +86,4 @@ if __name__ == "__main__":
     artist_response = search_artist(artist)
     artist_id = get_artist_id(artist, artist_response)
     print(artist_id)
+    song_data = get_song_data_single_page(artist_id)
