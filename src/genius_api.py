@@ -51,7 +51,7 @@ def get_artist_id(artist_name: str, artist_response: dict) -> int:
     return
 
 
-def get_song_data_single_page(artist_id: int, page_no: int=1) -> tuple:
+def get_artist_song(artist_id: int, page_no: int=1) -> tuple:
     url = f"{BASE_URL}/artists/{artist_id}/songs"
     params = {
         "access_token": ACCESS_TOKEN
@@ -60,25 +60,36 @@ def get_song_data_single_page(artist_id: int, page_no: int=1) -> tuple:
     aritst_id_response = handle_request(result)
     if aritst_id_response:
         return aritst_id_response, aritst_id_response["response"]["next_page"]
-    else:
-        return None, None
+    return None, None
 
 
 
-def get_song_data(artist_id) -> None:
+def get_artist_songs(artist_id, page_limit=1) -> None:
     page_no = 1
-    song_data = []
+    songs = []
     while True:
-        aritst_id_response, next_page = get_song_data_single_page(artist_id, page_no)
-        if not aritst_id_response or not next_page:
+        aritst_id_response, next_page = get_artist_song(artist_id, page_no)
+        if next_page is None or page_no >= page_limit:
             break
-        song_data.append(aritst_id_response)
+        songs.append(aritst_id_response)
         page_no += 1
     
     print(f"Searched {page_no} pages.")
+    return songs
+
+
+def get_lyrics_endpoint(songs_response):
+    song_data = []
+    for song in songs_response:
+        song["lyrics_state"] == "complete":
+        song_data.append(
+            {
+                "title": song["full_title"], 
+                "lyrics_endpoint": song["path"], 
+                "date": song["release_date_components"]
+            })
     return song_data
-
-
+          
 
 if __name__ == "__main__":
     artist = "metallica"
@@ -86,4 +97,4 @@ if __name__ == "__main__":
     artist_response = search_artist(artist)
     artist_id = get_artist_id(artist, artist_response)
     print(artist_id)
-    song_data = get_song_data_single_page(artist_id)
+    song_data = get_artist_song(artist_id)
