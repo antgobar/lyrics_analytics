@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "lyrics_analytics"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 requests = "^2.28.1"
 poetry-dotenv-plugin = "^0.1.0"
 flask = "^2.2.2"

@@ -5,13 +5,11 @@ from dotenv import dotenv_values
 
 config = dotenv_values(".env")
 ACCESS_TOKEN = config["GENIUS_CLIENT_ACCESS_TOKEN"]
-BASE_URL = "http://api.genius.com"
+BASE_URL = "https://api.genius.com"
 
 
-def handle_request(request_result: dict) -> None:
-    if request_result.status_code != 200:
-        print("Request", request_result.status_code)
-        return
+def handle_request(request_result):
+    request_result.raise_for_status()
     
     response = request_result.json()
     if response["meta"]["status"] != 200:
@@ -63,8 +61,7 @@ def get_artist_song(artist_id: int, page_no: int=1) -> tuple:
     return None, None
 
 
-
-def get_artist_songs(artist_id, page_limit=1) -> None:
+def get_artist_songs(artist_id, page_limit=1):
     page_no = 1
     songs = []
     while True:
@@ -81,13 +78,13 @@ def get_artist_songs(artist_id, page_limit=1) -> None:
 def get_lyrics_endpoint(songs_response):
     song_data = []
     for song in songs_response:
-        song["lyrics_state"] == "complete":
-        song_data.append(
-            {
-                "title": song["full_title"], 
-                "lyrics_endpoint": song["path"], 
-                "date": song["release_date_components"]
-            })
+        if song["lyrics_state"] == "complete":
+            song_data.append(
+                {
+                    "title": song["full_title"],
+                    "lyrics_endpoint": song["path"],
+                    "date": song["release_date_components"]
+                })
     return song_data
           
 
