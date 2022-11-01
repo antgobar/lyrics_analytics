@@ -12,11 +12,12 @@ BASE_URL = "http://api.genius.com"
 
 class GeniusService:
     def __init__(self, base_url: str, access_token: str) -> None:
+        self.base_url = base_url
         self.base_params = {"access_token": access_token}
         self.ping()
         
     def ping(self) -> None:
-        response = requests.get(f"{self.base_url}/account", params=self.base_params)
+        response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
         if response.ok and response.json()["meta"]["status"] == 200:
             return True
         else:
@@ -34,7 +35,7 @@ class GeniusService:
         return requests.get(url=url, params=params)
     
     def get_artist_id(self, artist_name):
-        artist_response = self.handle_response(search_artist(artist_name))
+        artist_response = self.handle_response(self.search_artist(artist_name))
         
         artist_ids = []
         for result in artist_response["hits"]:
@@ -46,18 +47,21 @@ class GeniusService:
         
         return {"artist_name": artist_name, "artist_id": None}
 
-    def get_artist_song_page(self, artist_id: int, page_no: int=None) -> Response:
+    def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
         params = self.base_params
         params["page"] = page_no
         return requests.get(url=url, params=params)
 
-    def get_artist_songs(self, artist_id: int, page_limit: int, page_no: int=None) -> list:
+    def get_artist_songs(self, artist_id: int, page_limit: int=1) -> list:
         page_no = 1
         songs = []
         while page_no <= page_limit:
-            response = self.get_artist_song_page(artist_id, page_no)
-            songs.append(response["songs"])
+            response = self.get_artist_song_page(artist_id, page_no).json()["response"]
+            for song in response["songs"]:
+                song_data = self.get_song_data(song)
+                if song_data is not None:
+                    songs.append(song_data)
             
             if response["next_page"] is None:
                 break
@@ -72,98 +76,16 @@ class GeniusService:
             return {
                 "title": song_response["full_title"], 
                 "lyrics_endpoint": song_response["path"], 
-                "date": song_response["release_date_components"]
+                "date": song_response["release_date_components"],
+                "pyongs_count": song_response["pyongs_count"]
             }
         return None
     
-
-def handle_request(request_result: dict) -> None:
-    if request_result.status_code != 200:
-        print("Request", request_result.status_code)
-        return
-    
-    response = request_result.json()
-    if response["meta"]["status"] != 200:
-        print("Request", request_result.status_code)
-        return
-    return response
-
-
-def search_artist(artist_name: str) -> dict:
-    url = f"{BASE_URL}/search"
-    params = {
-        "q": artist_name,
-        "access_token": ACCESS_TOKEN
-    }
-    result = requests.get(url=url, params=params)
-    artist_response = handle_request(result)
-    if artist_response:
-        print("Artist:", artist_name, True)
-        return artist_response
-    else:
-        print("Artist:", artist_name, False)
-        return
-
-
-def get_artist_id(artist_name: str, artist_response: dict) -> int:
-    if artist_response is None:
-        return
-    artist_ids = []
-    for result in artist_response["response"]["hits"]:
-        if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
-            artist_ids.append(result["result"]["primary_artist"]["id"])
-
-    if artist_ids:
-        return mode(artist_ids)
-    
-    print(f"Artist: {artist_name} - NOT FOUND")
-    return
-
-
-def get_artist_song(artist_id: int, page_no: int=1) -> tuple:
-    url = f"{BASE_URL}/artists/{artist_id}/songs"
-    params = {
-        "access_token": ACCESS_TOKEN
-    }
-    result = requests.get(url=url, params=params)
-    aritst_id_response = handle_request(result)
-    if aritst_id_response:
-        return aritst_id_response, aritst_id_response["response"]["next_page"]
-    return None, None
-
-
-
-def get_artist_songs(artist_id, page_limit=1) -> None:
-    page_no = 1
-    songs = []
-    while True:
-        aritst_id_response, next_page = get_artist_song(artist_id, page_no)
-        if next_page is None or page_no >= page_limit:
-            break
-        songs.append(aritst_id_response)
-        page_no += 1
-    
-    print(f"Searched {page_no} pages.")
-    return songs
-
-
-def get_lyrics_endpoint(songs_response):
-    song_data = []
-    for song in songs_response:
-        if song["lyrics_state"] == "complete":
-            song_data.append(
-                {
-                    "title": song["full_title"], 
-                    "lyrics_endpoint": song["path"], 
-                    "date": song["release_date_components"]
-                })
-    return song_data
           
 
 if __name__ == "__main__":
-    artist = "metallica"
-    print("Searching for", artist)
-    artist_response = search_artist(artist)
-    artist_id = get_artist_id(artist, artist_response)
-    print(artist_id)
-    song_data = get_artist_song(artist_id)
+    artist_name = "metallica"
+    print("Searching for", artist_name)
+    genius_service = GeniusService(BASE_URL, ACCESS_TOKEN)
+    artist_info = genius_service.get_artist_id(artist_name)
+    song_data = genius_service.get_artist_songs(artist_info["artist_id"])
