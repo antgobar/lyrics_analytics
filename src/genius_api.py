@@ -43,9 +43,9 @@ class GeniusService:
                 artist_ids.append(result["result"]["primary_artist"]["id"])
 
         if artist_ids:
-            return {"artist_name": artist_name, "artist_id": mode(artist_ids)}
+            return mode(artist_ids)
         
-        return {"artist_name": artist_name, "artist_id": None}
+        return None
 
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
@@ -74,6 +74,7 @@ class GeniusService:
     def get_song_data(song_response):
         if song_response["lyrics_state"] == "complete":
             return {
+                "artist_name": song_response["primary_artist"]["name"],
                 "title": song_response["full_title"], 
                 "lyrics_endpoint": song_response["path"], 
                 "date": song_response["release_date_components"],
@@ -81,11 +82,8 @@ class GeniusService:
             }
         return None
     
-          
 
-if __name__ == "__main__":
-    artist_name = "metallica"
-    print("Searching for", artist_name)
+def get_artist_data(artist_name):
     genius_service = GeniusService(BASE_URL, ACCESS_TOKEN)
-    artist_info = genius_service.get_artist_id(artist_name)
-    song_data = genius_service.get_artist_songs(artist_info["artist_id"])
+    artist_id = genius_service.get_artist_id(artist_name)
+    return genius_service.get_artist_songs(artist_id)
