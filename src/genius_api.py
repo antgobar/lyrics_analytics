@@ -87,3 +87,6 @@ def get_artist_data(artist_name):
     genius_service = GeniusService(BASE_URL, ACCESS_TOKEN)
     artist_id = genius_service.get_artist_id(artist_name)
     return genius_service.get_artist_songs(artist_id)
+
+
+
