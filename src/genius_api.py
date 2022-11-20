@@ -59,10 +59,8 @@ class GeniusService:
         while page_no <= page_limit:
             response = self.get_artist_song_page(artist_id, page_no).json()["response"]
             for song in response["songs"]:
-                song_data = self.get_song_data(song)
-                if song_data is not None:
-                    songs.append(song_data)
-            
+                if song["lyrics_state"] == "complete":
+                    songs.append(self.get_song_data(song))            
             if response["next_page"] is None:
                 break
             
@@ -72,21 +70,20 @@ class GeniusService:
     
     @staticmethod
     def get_song_data(song_response):
-        if song_response["lyrics_state"] == "complete":
-            return {
-                "artist_name": song_response["primary_artist"]["name"],
-                "title": song_response["full_title"], 
-                "lyrics_endpoint": song_response["path"], 
-                "date": song_response["release_date_components"],
-                "pyongs_count": song_response["pyongs_count"]
-            }
-        return None
+        return {
+            "artist_name": song_response["primary_artist"]["name"],
+            "title": song_response["full_title"], 
+            "lyrics_endpoint": song_response["path"], 
+            "date": song_response["release_date_components"],
+            "pyongs_count": song_response["pyongs_count"]
+        }
     
 
-def get_artist_data(artist_name):
+def get_artist_data(artist_name, page_limit):
     genius_service = GeniusService(BASE_URL, ACCESS_TOKEN)
     artist_id = genius_service.get_artist_id(artist_name)
-    return genius_service.get_artist_songs(artist_id)
+    return genius_service.get_artist_songs(artist_id, page_limit)
 
 
-
+if __name__ == "__main__":
+    result = get_artist_data("metallica", 1)
