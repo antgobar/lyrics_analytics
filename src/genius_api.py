@@ -36,7 +36,10 @@ class GeniusService:
     
     def get_artist_id(self, artist_name):
         artist_response = self.handle_response(self.search_artist(artist_name))
-        
+        if artist_response is None:
+            print("Not found:", artist_name)
+            return
+            
         artist_ids = []
         for result in artist_response["hits"]:
             if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
@@ -45,7 +48,7 @@ class GeniusService:
         if artist_ids:
             return mode(artist_ids)
         
-        return None
+        return
 
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
@@ -56,11 +59,21 @@ class GeniusService:
     def get_artist_songs(self, artist_id: int, page_limit: int=1) -> list:
         page_no = 1
         songs = []
+        titles = []
         while page_no <= page_limit:
             response = self.get_artist_song_page(artist_id, page_no).json()["response"]
+            
             for song in response["songs"]:
-                if song["lyrics_state"] == "complete":
-                    songs.append(self.get_song_data(song))            
+                passed_filter, titles = self.title_filter(song["title"], titles)
+                if song["lyrics_state"] != "complete":
+                    continue
+                elif not passed_filter:
+                    continue
+                
+                song_data = self.get_song_data(song)
+                songs.append(song_data)
+                titles.append(song_data["title"].lower())  
+                    
             if response["next_page"] is None:
                 break
             
@@ -70,13 +83,27 @@ class GeniusService:
     
     @staticmethod
     def get_song_data(song_response):
+        print(song_response["title"])
         return {
             "artist_name": song_response["primary_artist"]["name"],
-            "title": song_response["full_title"], 
-            "lyrics_endpoint": song_response["path"], 
+            "title": song_response["title"], 
+            "lyrics_url": song_response["url"], 
             "date": song_response["release_date_components"],
             "pyongs_count": song_response["pyongs_count"]
         }
+        
+    @staticmethod
+    def title_filter(title, titles):
+        patterns = ("(live", "[live", "(demo", "[")
+        for pattern in patterns:
+            if pattern in title.lower():
+                return False, titles
+        
+        if title.lower() in titles:
+            return False, titles
+        
+        titles.append(title.lower())
+        return True, titles
     
 
 def get_artist_data(artist_name, page_limit):
@@ -86,4 +113,4 @@ def get_artist_data(artist_name, page_limit):
 
 
 if __name__ == "__main__":
-    result = get_artist_data("metallica", 1)
+    result = get_artist_data("metallica", 2)

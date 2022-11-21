@@ -4,7 +4,12 @@ import requests
 from bs4 import BeautifulSoup
 
 
-class Scraper:        
+class Scraper:
+    @classmethod
+    def get_lyrics(cls, url: str) -> list:
+        raw_lyrics = cls.scrape(url)
+        return cls.clean(raw_lyrics)
+
     @staticmethod
     def scrape(url: str):
         page = requests.get(url)
@@ -26,11 +31,6 @@ class Scraper:
         lyrics = lyrics.replace("  ", " ")
 
         return lyrics.split(" ")
-    
-    @classmethod
-    def get_lyrics(cls, url: str) -> list:
-        raw_lyrics = cls.scrape(url)
-        return cls.clean(raw_lyrics)
     
 
 if __name__ == "__main__":
