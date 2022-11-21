@@ -15,6 +15,7 @@ class GeniusService:
         self.base_url = base_url
         self.base_params = {"access_token": access_token}
         self.ping()
+        self.titles = []
         
     def ping(self) -> None:
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
@@ -59,12 +60,11 @@ class GeniusService:
     def get_artist_songs(self, artist_id: int, page_limit: int=1) -> list:
         page_no = 1
         songs = []
-        titles = []
         while page_no <= page_limit:
             response = self.get_artist_song_page(artist_id, page_no).json()["response"]
             
             for song in response["songs"]:
-                passed_filter, titles = self.title_filter(song["title"], titles)
+                passed_filter = self.title_filter(song["title"])
                 if song["lyrics_state"] != "complete":
                     continue
                 elif not passed_filter:
@@ -72,7 +72,6 @@ class GeniusService:
                 
                 song_data = self.get_song_data(song)
                 songs.append(song_data)
-                titles.append(song_data["title"].lower())  
                     
             if response["next_page"] is None:
                 break
@@ -83,7 +82,6 @@ class GeniusService:
     
     @staticmethod
     def get_song_data(song_response):
-        print(song_response["title"])
         return {
             "artist_name": song_response["primary_artist"]["name"],
             "title": song_response["title"], 
@@ -91,19 +89,19 @@ class GeniusService:
             "date": song_response["release_date_components"],
             "pyongs_count": song_response["pyongs_count"]
         }
-        
-    @staticmethod
-    def title_filter(title, titles):
-        patterns = ("(live", "[live", "(demo", "[")
+    
+    def title_filter(self, title):
+        title = title.lower().replace("\u2014", " ")
+        patterns = ("(live", "[live", "(demo", "[", "demo")
         for pattern in patterns:
-            if pattern in title.lower():
-                return False, titles
+            if pattern in title:
+                return False
         
-        if title.lower() in titles:
-            return False, titles
+        if title in self.titles:
+            return False
         
-        titles.append(title.lower())
-        return True, titles
+        self.titles.append(title.lower())
+        return True
     
 
 def get_artist_data(artist_name, page_limit):
