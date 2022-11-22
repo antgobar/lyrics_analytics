@@ -98,6 +98,7 @@ class TestGeniusService:
         
         assert test_instance.get_artist_id("Artist_a") == expected
 
+    @patch("lyrics_analytics.services.genius_api.GeniusService.handle_response")
     @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
     @patch("lyrics_analytics.services.genius_api.GeniusService.get_song_data")
     @patch("lyrics_analytics.services.genius_api.GeniusService.get_artist_song_page")
@@ -106,15 +107,15 @@ class TestGeniusService:
         mock_get_artist_song_page, 
         mock_get_song_data,
         mock_title_filter,
+        mock_handle_response,
         mock_requests,
         ping_is_true,
         
     ):
         mock_requests.get.return_value = ping_is_true
-        mock_get_artist_song_page.json.return_value = {
-            "response": {"songs": [
-                {"title": "some_title", "lyrics_stage": "complete"}
-            ], "next_page": 1}
+        mock_handle_response.return_value = {"songs": [
+                {"title": "some_title", "lyrics_state": "complete"}
+            ], "next_page": 1
         }
         mock_get_song_data.return_value = {"song": "data"}
         mock_title_filter.return_value = True

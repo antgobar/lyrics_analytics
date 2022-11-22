@@ -58,7 +58,7 @@ class GeniusService:
         songs = []
         while page_no <= page_limit:
             
-            response = self.get_artist_song_page(artist_id, page_no).json()["response"]
+            response = self.handle_response(self.get_artist_song_page(artist_id, page_no))
             for song in response["songs"]:
                 passed_filter = self.title_filter(song["title"])
                 if song["lyrics_state"] != "complete":
