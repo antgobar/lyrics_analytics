@@ -87,7 +87,12 @@ class GeniusService:
         }
     
     def title_filter(self, title):
-        title = title.lower().replace("\u2014", " ")
+        title = title.lower()
+        
+        replace_patterns = ("\u2014", )
+        for pattern in replace_patterns:    
+            title = title.replace(pattern, " ")
+    
         patterns = ("(live", "[live", "(demo", "[", "demo")
         for pattern in patterns:
             if pattern in title:
@@ -96,7 +101,7 @@ class GeniusService:
         if title in self.titles:
             return False
         
-        self.titles.append(title.lower())
+        self.titles.append(title)
         return True
 
 

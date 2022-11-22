@@ -126,3 +126,30 @@ class TestGeniusService:
         
         assert actual == [{"song": "data"}, {"song": "data"}]
         
+    def test_get_song_data(self, mock_requests, ping_is_true):
+        mock_requests.get.return_value = ping_is_true
+        song_response = {
+            "primary_artist": {"name": "some artist"},
+            "title": "some title",
+            "url": "some url",
+            "release_date_components": "some date",
+            "pyongs_count": "some count"
+        }
+        expected = {
+            "artist_name": "some artist",
+            "title": "some title", 
+            "lyrics_url": "some url", 
+            "date": "some date",
+            "pyongs_count": "some count"
+        }
+        
+        test_instance = GeniusService("url", "apikey")
+        
+        assert test_instance.get_song_data(song_response) == expected
+        
+    def test_title_filter(self, mock_requests, ping_is_true):
+        mock_requests.get.return_value = ping_is_true
+        
+        test_instance = GeniusService("url", "apikey")
+        
+        assert test_instance.title_filter("title") == True
