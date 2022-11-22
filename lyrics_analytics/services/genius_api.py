@@ -1,13 +1,9 @@
 from statistics import mode
-from xmlrpc.client import ResponseError
 
 import requests
+from requests.exceptions import RequestException
 from requests.models import Response
 from dotenv import dotenv_values
-
-config = dotenv_values(".env")
-ACCESS_TOKEN = config["GENIUS_CLIENT_ACCESS_TOKEN"]
-BASE_URL = "http://api.genius.com"
 
 
 class GeniusService:
@@ -17,7 +13,7 @@ class GeniusService:
         self.ping()
         self.titles = []
         
-    def ping(self) -> None:
+    def ping(self):
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
         if response.ok and response.json()["meta"]["status"] == 200:
             return True
@@ -27,7 +23,7 @@ class GeniusService:
     def handle_response(self, response) -> dict:
         if response.ok and response.json()["meta"]["status"] == 200:
             return response.json()["response"]
-        raise ResponseError()
+        raise RequestException()
     
     def search_artist(self, artist_name: str) -> Response:
         url = f"{self.base_url}/search"
@@ -102,10 +98,18 @@ class GeniusService:
         
         self.titles.append(title.lower())
         return True
-    
+
+
+def connect_genius():
+    config = dotenv_values(".env")
+    base_url = "http://api.genius.com"
+    access_token = config["GENIUS_CLIENT_ACCESS_TOKEN"]
+    return base_url, access_token
+
 
 def get_artist_data(artist_name, page_limit):
-    genius_service = GeniusService(BASE_URL, ACCESS_TOKEN)
+    base_url, access_token = connect_genius()
+    genius_service = GeniusService(base_url, access_token)
     artist_id = genius_service.get_artist_id(artist_name)
     return genius_service.get_artist_songs(artist_id, page_limit)
 
