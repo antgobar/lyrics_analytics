@@ -48,7 +48,6 @@ class TestGeniusService:
             
         mock_response = MockResponse()
         mock_requests.get.return_value = ping_is_true
-        
         test_instance = GeniusService("url", "apikey")
         
         assert test_instance.handle_response(mock_response) == "data"
@@ -63,8 +62,66 @@ class TestGeniusService:
             
         mock_response = MockResponse()
         mock_requests.get.return_value = ping_is_true
-        
         test_instance = GeniusService("url", "apikey")
         
         with pytest.raises(RequestException):
             test_instance.handle_response(mock_response)
+
+    @patch("lyrics_analytics.services.genius_api.GeniusService.handle_response")
+    @pytest.mark.parametrize(("handle_return", "expected"), [
+        (
+            {
+                
+                "hits": [
+                    {"result": {"primary_artist": {"name": "artist_A", "id": 1}}},
+                    {"result": {"primary_artist": {"name": "artist_A", "id": 1}}},
+                    {"result": {"primary_artist": {"name": "artist_A", "id": 2}}},
+                    {"result": {"primary_artist": {"name": "artist_B", "id": 1}}},
+                ]
+            },
+            1
+        ),
+        (None, None)
+    ])
+    def test_get_artist_id(
+        self, 
+        mock_handle_response, 
+        mock_requests, 
+        ping_is_true, 
+        handle_return, 
+        expected
+    ):
+        mock_requests.get.return_value = ping_is_true
+        mock_handle_response.return_value = handle_return
+        
+        test_instance = GeniusService("url", "apikey")
+        
+        assert test_instance.get_artist_id("Artist_a") == expected
+
+    @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
+    @patch("lyrics_analytics.services.genius_api.GeniusService.get_song_data")
+    @patch("lyrics_analytics.services.genius_api.GeniusService.get_artist_song_page")
+    def test_get_artist_songs(
+        self, 
+        mock_get_artist_song_page, 
+        mock_get_song_data,
+        mock_title_filter,
+        mock_requests,
+        ping_is_true,
+        
+    ):
+        mock_requests.get.return_value = ping_is_true
+        mock_get_artist_song_page.json.return_value = {
+            "response": {"songs": [
+                {"title": "some_title", "lyrics_stage": "complete"}
+            ], "next_page": 1}
+        }
+        mock_get_song_data.return_value = {"song": "data"}
+        mock_title_filter.return_value = True
+        
+        test_instance = GeniusService("url", "apikey")
+        
+        actual = test_instance.get_artist_songs(1, 2)
+        
+        assert actual == [{"song": "data"}, {"song": "data"}]
+        
