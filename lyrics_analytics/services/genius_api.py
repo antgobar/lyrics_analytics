@@ -51,6 +51,7 @@ class GeniusService:
         url = f"{self.base_url}/artists/{artist_id}/songs"
         params = self.base_params
         params["page"] = page_no
+        params["per_page"] = 50 # max per page
         return requests.get(url=url, params=params)
 
     def get_artist_songs(self, artist_id: int, page_limit: int=1) -> list:
