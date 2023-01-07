@@ -75,11 +75,14 @@ class TestGeniusService:
                 "hits": [
                     {"result": {"primary_artist": {"name": "artist_A", "id": 1}}},
                     {"result": {"primary_artist": {"name": "artist_A", "id": 1}}},
-                    {"result": {"primary_artist": {"name": "artist_A", "id": 2}}},
-                    {"result": {"primary_artist": {"name": "artist_B", "id": 1}}},
+                    {"result": {"primary_artist": {"name": "artist_B", "id": 2}}},
+                    {"result": {"primary_artist": {"name": "artist_A_and_B", "id": 3}}}
                 ]
             },
-            1
+            [
+                {'artist_id': 1, 'artist_name': 'artist_A'},
+                {'artist_id': 3, 'artist_name': 'artist_A_and_B'}
+            ]
         ),
         (None, None)
     ])
@@ -96,7 +99,7 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
         
-        assert test_instance.get_artist_id("Artist_a") == expected
+        assert test_instance.find_artists("Artist_a") == expected
 
     @patch("lyrics_analytics.services.genius_api.GeniusService.handle_response")
     @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
@@ -132,15 +135,13 @@ class TestGeniusService:
             "primary_artist": {"name": "some artist"},
             "title": "some title",
             "url": "some url",
-            "release_date_components": "some date",
-            "pyongs_count": "some count"
+            "release_date_components": "some date"
         }
         expected = {
             "artist_name": "some artist",
             "title": "some title", 
             "lyrics_url": "some url", 
-            "date": "some date",
-            "pyongs_count": "some count"
+            "date": "some date"
         }
         
         test_instance = GeniusService("url", "apikey")

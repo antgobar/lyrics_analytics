@@ -20,7 +20,8 @@ class GeniusService:
         else:
             raise ConnectionError("Unable to connect")
         
-    def handle_response(self, response) -> dict:
+    @staticmethod
+    def handle_response(response: Response) -> dict:
         if response.ok and response.json()["meta"]["status"] == 200:
             return response.json()["response"]
         raise RequestException()
@@ -31,35 +32,36 @@ class GeniusService:
         params["q"] = artist_name
         return requests.get(url=url, params=params)
     
-    def get_artist_id(self, artist_name):
-        artist_response = self.handle_response(self.search_artist(artist_name))
-        if artist_response is None:
+    def find_artists(self, artist_name: str) -> list[dict]:
+        unhandled = self.search_artist(artist_name)
+        response = self.handle_response(unhandled)
+        if response is None:
             print("Not found:", artist_name)
             return
             
-        artist_ids = []
-        for result in artist_response["hits"]:
+        artists_found = []
+        for result in response["hits"]:
             if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
-                artist_ids.append(result["result"]["primary_artist"]["id"])
+                artist_data = result["result"]["primary_artist"]
+                artists_found.append(
+                    {"artist_id": artist_data["id"], "artist_name": artist_data["name"]}
+                )
 
-        if artist_ids:
-            return mode(artist_ids)
-        
-        return
+        return list({artist['artist_id']: artist for artist in artists_found}.values())
 
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
         params = self.base_params
         params["page"] = page_no
-        params["per_page"] = 50 # max per page
+        params["per_page"] = 50  # max per page
         return requests.get(url=url, params=params)
 
-    def get_artist_songs(self, artist_id: int, page_limit: int=1) -> list:
+    def get_artist_songs(self, artist_id: int, page_limit: int) -> list:
         page_no = 1
         songs = []
         while page_no <= page_limit:
-            
-            response = self.handle_response(self.get_artist_song_page(artist_id, page_no))
+            pre_response = self.get_artist_song_page(artist_id, page_no)
+            response = self.handle_response(pre_response)
             for song in response["songs"]:
                 passed_filter = self.title_filter(song["title"])
                 if song["lyrics_state"] != "complete":
@@ -78,16 +80,15 @@ class GeniusService:
         return songs   
     
     @staticmethod
-    def get_song_data(song_response):
+    def get_song_data(song_response: dict) -> dict:
         return {
             "artist_name": song_response["primary_artist"]["name"],
             "title": song_response["title"], 
             "lyrics_url": song_response["url"], 
-            "date": song_response["release_date_components"],
-            "pyongs_count": song_response["pyongs_count"]
+            "date": song_response["release_date_components"]
         }
     
-    def title_filter(self, title):
+    def title_filter(self, title: str) -> bool:
         title = title.lower()
         
         replace_patterns = ("\u2014", )
@@ -106,19 +107,25 @@ class GeniusService:
         return True
 
 
-def connect_genius():
+def connect_genius() -> tuple:
     config = dotenv_values(".env")
     base_url = "http://api.genius.com"
     access_token = config["GENIUS_CLIENT_ACCESS_TOKEN"]
     return base_url, access_token
 
 
-def get_artist_data(artist_name, page_limit):
+def find_artists(artist_name):
     base_url, access_token = connect_genius()
     genius_service = GeniusService(base_url, access_token)
-    artist_id = genius_service.get_artist_id(artist_name)
+    return genius_service.find_artists(artist_name)
+
+
+def get_artist_data(artist_id, page_limit):
+    base_url, access_token = connect_genius()
+    genius_service = GeniusService(base_url, access_token)
     return genius_service.get_artist_songs(artist_id, page_limit)
 
 
 if __name__ == "__main__":
-    result = get_artist_data("metallica", 2)
+    artists_found = find_artists("metallica")
+    # result = get_artist_data("metallica", 2)

@@ -29,10 +29,4 @@ class Scraper:
             lyrics = lyrics.replace(char, " ")
             
         lyrics = lyrics.replace("  ", " ")
-
-        return lyrics.split(" ")
-    
-
-if __name__ == "__main__":
-    lyrics_url = "https://genius.com/Sia-chandelier-lyrics"
-    lyrics = Scraper.get_lyrics(lyrics_url)
+        return " lyrics ".join(lyrics.split("lyrics ")[1:])
