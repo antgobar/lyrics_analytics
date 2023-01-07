@@ -29,4 +29,7 @@ class Scraper:
             lyrics = lyrics.replace(char, " ")
             
         lyrics = lyrics.replace("  ", " ")
-        return " lyrics ".join(lyrics.split("lyrics ")[1:])
+        lyrics = lyrics.split("lyrics ")
+        if len(lyrics) == 1:
+            return lyrics[0]
+        return " lyrics ".join(lyrics[1:])
