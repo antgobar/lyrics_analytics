@@ -15,9 +15,13 @@ def test_scraper_get_lyrics(mock_scrape, mock_clean):
     mock_scrape.assert_called_with("some_url")
     mock_clean.assert_called_with("raw lyrics")
 
+@patch("lyrics_analytics.services.scraper.BeautifulSoup")
+@patch("lyrics_analytics.services.scraper.requests")
+def test_scraper_scrape(mock_requests, mock_bs):
+    mock_requests.get.return_value = "response"
+    mock_requests.get.return_value.content.return_value = b"content"
 
-def test_scraper_scrape():
-    pass
+    mock_bs.assert_called_with(b"content", "html.parser")
 
 @pytest.mark.parametrize(("lyric", "expected"), [
     ("has [square] brackets", "has brackets"),
