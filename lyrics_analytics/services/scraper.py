@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 class Scraper:
     @classmethod
-    def get_lyrics(cls, url: str) -> list:
+    def get_lyrics(cls, url: str) -> str:
         raw_lyrics = cls.scrape(url)
         return cls.clean(raw_lyrics)
 

@@ -1,10 +1,31 @@
+from unittest.mock import patch
+
 import pytest
 
 from lyrics_analytics.services.scraper import Scraper
 
 
+@patch("lyrics_analytics.services.scraper.Scraper.clean")
+@patch("lyrics_analytics.services.scraper.Scraper.scrape")
+def test_scraper_get_lyrics(mock_scrape, mock_clean):
+    mock_scrape.return_value = "raw lyrics"
+    mock_clean.return_value = "clean lyrics"
+
+    assert Scraper.get_lyrics("some_url") == "clean lyrics"
+    mock_scrape.assert_called_with("some_url")
+    mock_clean.assert_called_with("raw lyrics")
+
+
+def test_scraper_scrape():
+    pass
+
 @pytest.mark.parametrize(("lyric", "expected"), [
-    ("has [square] brackets", "has brackets")
+    ("has [square] brackets", "has brackets"),
+    ("new\n\nlines", "new lines"),
+    ("UPPER", "upper"),
+    ("some.other,characters  here", "some other characters here"),
+    ("foobar lyrics some lyric here", "some lyric here"),
+    ("basic", "basic")
 ])
 def test_scraper_clean(lyric, expected):
     assert Scraper.clean(lyric) == expected
