@@ -45,10 +45,10 @@ class GeniusService:
             if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
                 artist_data = result["result"]["primary_artist"]
                 artists_found.append(
-                    {"artist_id": artist_data["id"], "artist_name": artist_data["name"]}
+                    {"id": artist_data["id"], "name": artist_data["name"]}
                 )
 
-        self.artists_found = list({artist['artist_id']: artist for artist in artists_found}.values())
+        self.artists_found = list({artist["id"]: artist for artist in artists_found}.values())
         return self.artists_found
 
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
@@ -84,7 +84,7 @@ class GeniusService:
     @staticmethod
     def get_song_data(song_response: dict) -> dict:
         return {
-            "artist_name": song_response["primary_artist"]["name"],
+            "name": song_response["primary_artist"]["name"],
             "title": song_response["title"], 
             "lyrics_url": song_response["url"], 
             "date": song_response["release_date_components"]

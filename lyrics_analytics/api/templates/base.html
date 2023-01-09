@@ -3,19 +3,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
   {% if g.user %}
-    <h1>Flaskr: {{ g.user["username"] }}</h1>
+    <h1>User: {{ g.user["username"] }}</h1>
   {% else %}
-  <h1>Flaskr</h1>
+    <h1>Lyrics Analytics</h1>
   {% endif %}
-  <ul>
-    {% if g.user %}
-      <li><span>{{ g.user['username'] }}</span>
-      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
-    {% else %}
-      <li><a href="{{ url_for('auth.register') }}">Register</a>
-      <li><a href="{{ url_for('auth.login') }}">Log In</a>
-    {% endif %}
-  </ul>
 </nav>
 <section class="content">
   <header>

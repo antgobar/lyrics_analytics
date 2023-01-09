@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from lyrics_analytics import Scraper
+from lyrics_analytics.services import Scraper
 
 
 @patch("lyrics_analytics.services.scraper.Scraper.clean")
