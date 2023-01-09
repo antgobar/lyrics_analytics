@@ -71,7 +71,6 @@ class TestGeniusService:
     @pytest.mark.parametrize(("handle_return", "expected"), [
         (
             {
-                
                 "hits": [
                     {"result": {"primary_artist": {"name": "artist_A", "id": 1}}},
                     {"result": {"primary_artist": {"name": "artist_A", "id": 1}}},
@@ -86,7 +85,7 @@ class TestGeniusService:
         ),
         (None, None)
     ])
-    def test_get_artist_id(
+    def test_find_artists(
         self, 
         mock_handle_response, 
         mock_requests, 
@@ -98,8 +97,10 @@ class TestGeniusService:
         mock_handle_response.return_value = handle_return
         
         test_instance = GeniusService("url", "apikey")
-        
+
+        assert test_instance.artists_found is None
         assert test_instance.find_artists("Artist_a") == expected
+        assert test_instance.artists_found == expected
 
     @patch("lyrics_analytics.services.genius_api.GeniusService.handle_response")
     @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")

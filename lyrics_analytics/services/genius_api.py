@@ -12,6 +12,7 @@ class GeniusService:
         self.base_params = {"access_token": access_token}
         self.ping()
         self.titles = []
+        self.artists_found = None
         
     def ping(self):
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
@@ -47,7 +48,8 @@ class GeniusService:
                     {"artist_id": artist_data["id"], "artist_name": artist_data["name"]}
                 )
 
-        return list({artist['artist_id']: artist for artist in artists_found}.values())
+        self.artists_found = list({artist['artist_id']: artist for artist in artists_found}.values())
+        return self.artists_found
 
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
@@ -124,8 +126,3 @@ def get_artist_data(artist_id, page_limit):
     base_url, access_token = connect_genius()
     genius_service = GeniusService(base_url, access_token)
     return genius_service.get_artist_songs(artist_id, page_limit)
-
-
-if __name__ == "__main__":
-    artists_found = find_artists("metallica")
-    # result = get_artist_data("metallica", 2)
