@@ -42,6 +42,7 @@ class GeniusService:
             
         artists_found = []
         for result in response["hits"]:
+            print(result["type"])
             if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
                 artist_data = result["result"]["primary_artist"]
                 artists_found.append(

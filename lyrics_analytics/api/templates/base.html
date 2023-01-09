@@ -2,11 +2,7 @@
 <title>{% block title %}{% endblock %} - Lyrics Analytics</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
-  {% if g.user %}
-    <h1>User: {{ g.user["username"] }}</h1>
-  {% else %}
-    <h1>Lyrics Analytics</h1>
-  {% endif %}
+  <a href="{{ url_for('search.index') }}">Lyrics Analytics</a>
 </nav>
 <section class="content">
   <header>
