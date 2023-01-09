@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from requests.exceptions import RequestException
 
-from lyrics_analytics.services.genius_api import GeniusService
+from lyrics_analytics import GeniusService
 
 
 @pytest.fixture
