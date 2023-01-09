@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from requests.exceptions import RequestException
 
-from lyrics_analytics.services import GeniusService
+from lyrics_analytics.services.genius_api import GeniusService
 
 
 @pytest.fixture
@@ -79,8 +79,8 @@ class TestGeniusService:
                 ]
             },
             [
-                {'artist_id': 1, 'artist_name': 'artist_A'},
-                {'artist_id': 3, 'artist_name': 'artist_A_and_B'}
+                {"id": 1, "name": 'artist_A'},
+                {"id": 3, "name": 'artist_A_and_B'}
             ]
         ),
         (None, None)
@@ -139,7 +139,7 @@ class TestGeniusService:
             "release_date_components": "some date"
         }
         expected = {
-            "artist_name": "some artist",
+            "name": "some artist",
             "title": "some title", 
             "lyrics_url": "some url", 
             "date": "some date"
