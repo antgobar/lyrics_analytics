@@ -1,18 +1,17 @@
-from statistics import mode
-
 import requests
 from requests.exceptions import RequestException
 from requests.models import Response
 from dotenv import dotenv_values
 
 
+# ps -o pid,rss -C python3.10 - to find memory usage
+
 class GeniusService:
     def __init__(self, base_url: str, access_token: str) -> None:
         self.base_url = base_url
         self.base_params = {"access_token": access_token}
         self.ping()
-        self.titles = []
-        self.artists_found = None
+        self.cache = {"titles": [], "artists_found": None}
         
     def ping(self):
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
@@ -42,15 +41,14 @@ class GeniusService:
             
         artists_found = []
         for result in response["hits"]:
-            print(result["type"])
             if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
                 artist_data = result["result"]["primary_artist"]
                 artists_found.append(
                     {"id": artist_data["id"], "name": artist_data["name"]}
                 )
 
-        self.artists_found = list({artist["id"]: artist for artist in artists_found}.values())
-        return self.artists_found
+        self.cache["artists_found"] = list({artist["id"]: artist for artist in artists_found}.values())
+        return self.cache["artists_found"]
 
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
@@ -103,10 +101,10 @@ class GeniusService:
             if pattern in title:
                 return False
         
-        if title in self.titles:
+        if title in self.cache["titles"]:
             return False
         
-        self.titles.append(title)
+        self.cache["titles"].append(title)
         return True
 
 

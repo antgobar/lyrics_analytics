@@ -23,7 +23,7 @@ class TestGeniusService:
         test_instance = GeniusService("url", "apikey")
         
         assert test_instance.base_url == "url"
-        assert test_instance.titles == []
+        assert test_instance.cache == {"titles": [], "artists_found": None}
         assert test_instance.ping() is True
         
     @pytest.mark.parametrize(("ok_status", "g_status"), [
@@ -98,9 +98,9 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
 
-        assert test_instance.artists_found is None
+        assert test_instance.cache["artists_found"] is None
         assert test_instance.find_artists("Artist_a") == expected
-        assert test_instance.artists_found == expected
+        assert test_instance.cache["artists_found"] == expected
 
     @patch("lyrics_analytics.services.genius_api.GeniusService.handle_response")
     @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
