@@ -98,7 +98,7 @@ class GeniusService:
         for pattern in replace_patterns:    
             title = title.replace(pattern, " ")
     
-        patterns = ("(live", "[live", "(demo", "[", "demo")
+        patterns = ("(", "[", "demo")
         for pattern in patterns:
             if pattern in title:
                 return False

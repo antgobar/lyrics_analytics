@@ -1,8 +1,13 @@
 <!doctype html>
 <title>{% block title %}{% endblock %} - Lyrics Analytics</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<nav>
-  <a href="{{ url_for('search.index') }}">Lyrics Analytics</a>
+<nav class="navbar">
+  <a href="{{ url_for('search.index') }}" class="navbar-brand">Lyrics Analytics</a>
+  <div class="nav-items">
+    <a href="">About</a>
+    <a href="">Contact</a>
+    <a href="" class="login">Login</a>
+  </div>
 </nav>
 <section class="content">
   <header>
