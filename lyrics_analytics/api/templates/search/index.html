@@ -9,7 +9,7 @@
     <label for="name">Artist Name</label>
     <input name="name" id="name"required>
     <label for="pages">Pages</label>
-    <input type="number" min=1 name="pages" id="pages" required>
+    <input type="number" min=1 name="pages" id="pages" value="1">
     <input type="submit" value="Search">
   </form>
   {% if artists|length > 0 %}
@@ -22,7 +22,6 @@
         </header>
       </article>
       {% if not loop.last %}
-        <hr>
       {% endif %}
     {% endfor %}
   {% endif %}
