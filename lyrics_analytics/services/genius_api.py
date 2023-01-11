@@ -1,3 +1,5 @@
+from typing import Callable
+
 import requests
 from requests.exceptions import RequestException
 from requests.models import Response
@@ -11,7 +13,7 @@ class GeniusService:
         self.base_url = base_url
         self.base_params = {"access_token": access_token}
         self.ping()
-        self.cache = {"titles": [], "artists_found": None}
+        self.cache = {"titles": [], "artists_found": []}
         
     def ping(self):
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
@@ -19,22 +21,25 @@ class GeniusService:
             return True
         else:
             raise ConnectionError("Unable to connect")
-        
+
     @staticmethod
-    def handle_response(response: Response) -> dict:
-        if response.ok and response.json()["meta"]["status"] == 200:
-            return response.json()["response"]
-        raise RequestException()
-    
+    def handle_response(func) -> Callable:
+        def wrapper(*args, **kwargs) -> dict:
+            response = func(*args, **kwargs)
+            if response.ok and response.json()["meta"]["status"] == 200:
+                return response.json()["response"]
+            raise RequestException()
+        return wrapper
+
+    @handle_response
     def search_artist(self, artist_name: str) -> Response:
         url = f"{self.base_url}/search"
         params = self.base_params
         params["q"] = artist_name
         return requests.get(url=url, params=params)
     
-    def find_artists(self, artist_name: str) -> list[dict]:
-        unhandled = self.search_artist(artist_name)
-        response = self.handle_response(unhandled)
+    def find_artists(self, artist_name: str) -> list[dict] | None:
+        response = self.search_artist(artist_name)
         if response is None:
             print("Not found:", artist_name)
             return
@@ -50,6 +55,7 @@ class GeniusService:
         self.cache["artists_found"] = list({artist["id"]: artist for artist in artists_found}.values())
         return self.cache["artists_found"]
 
+    @handle_response
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
         url = f"{self.base_url}/artists/{artist_id}/songs"
         params = self.base_params
@@ -61,8 +67,7 @@ class GeniusService:
         page_no = 1
         songs = []
         while page_no <= page_limit:
-            pre_response = self.get_artist_song_page(artist_id, page_no)
-            response = self.handle_response(pre_response)
+            response = self.get_artist_song_page(artist_id, page_no)
             for song in response["songs"]:
                 passed_filter = self.title_filter(song["title"])
                 if song["lyrics_state"] != "complete":
@@ -125,3 +130,14 @@ def get_artist_data(artist_id, page_limit):
     base_url, access_token = connect_genius()
     genius_service = GeniusService(base_url, access_token)
     return genius_service.get_artist_songs(artist_id, page_limit)
+
+
+def main():
+    artists_found = find_artists("metallica")
+    print(artists_found)
+    songs = get_artist_data(artists_found[0]["id"], 1)
+    print(songs)
+
+
+if __name__ == "__main__":
+    main()
