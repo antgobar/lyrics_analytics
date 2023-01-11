@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 class Scraper:
     @classmethod
-    def get_lyrics(cls, url: str) -> list:
+    def get_lyrics(cls, url: str) -> str:
         raw_lyrics = cls.scrape(url)
         return cls.clean(raw_lyrics)
 
@@ -29,10 +29,7 @@ class Scraper:
             lyrics = lyrics.replace(char, " ")
             
         lyrics = lyrics.replace("  ", " ")
-
-        return lyrics.split(" ")
-    
-
-if __name__ == "__main__":
-    lyrics_url = "https://genius.com/Sia-chandelier-lyrics"
-    lyrics = Scraper.get_lyrics(lyrics_url)
+        lyrics = lyrics.split("lyrics ")
+        if len(lyrics) == 1:
+            return lyrics[0]
+        return " lyrics ".join(lyrics[1:])
