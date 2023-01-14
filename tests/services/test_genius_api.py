@@ -115,14 +115,17 @@ class TestGeniusService:
         assert test_instance.cache["artists_found"] == []
         assert test_instance.find_artists("Artist_a") == expected
         assert test_instance.cache["artists_found"] == expected_cache
+        mock_search_artist.assert_called_with("Artist_a")
 
     @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
+    @patch("lyrics_analytics.services.genius_api.GeniusService.get_artist")
     @patch("lyrics_analytics.services.genius_api.GeniusService.get_song_data")
     @patch("lyrics_analytics.services.genius_api.GeniusService.get_artist_song_page")
     def test_get_artist_songs(
         self, 
         mock_get_artist_song_page, 
         mock_get_song_data,
+        mock_get_artist,
         mock_title_filter,
         mock_requests,
         ping_is_true,
@@ -130,10 +133,17 @@ class TestGeniusService:
     ):
         mock_requests.get.return_value = ping_is_true
         mock_get_artist_song_page.side_effect = [
-            {"songs": [{"title": "some_title", "lyrics_state": "complete"}], "next_page": 1},
-            {"songs": [{"title": "some_title", "lyrics_state": "complete"}], "next_page": None}
+            {
+                "songs": [{"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}}],
+                "next_page": 1
+            },
+            {
+                "songs": [{"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}}],
+                "next_page": None
+            }
         ]
         mock_get_song_data.return_value = {"song": "data"}
+        mock_get_artist.return_value = {"artist": {"name": "artist A"}}
         mock_title_filter.return_value = True
         
         test_instance = GeniusService("url", "apikey")
@@ -141,7 +151,11 @@ class TestGeniusService:
         actual = test_instance.get_artist_songs(1)
         
         assert actual == [{"song": "data"}, {"song": "data"}]
-        
+        mock_get_artist.assert_called_with(1)
+        mock_title_filter.assert_called_with("some_title")
+        mock_get_artist_song_page.assert_called_with(1, 2)
+        mock_get_song_data.assert_called_with({"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}})
+
     def test_get_song_data(self, mock_requests, ping_is_true):
         mock_requests.get.return_value = ping_is_true
         song_response = {

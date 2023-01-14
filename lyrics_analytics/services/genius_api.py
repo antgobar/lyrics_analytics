@@ -37,7 +37,7 @@ class GeniusService:
         params = self.base_params
         params["q"] = artist_name
         return requests.get(url=url, params=params)
-    
+
     def find_artists(self, artist_name: str) -> list[dict] or None:
         response = self.search_artist(artist_name)
         if response is None:
@@ -63,14 +63,21 @@ class GeniusService:
         params["per_page"] = 50  # max per page
         return requests.get(url=url, params=params)
 
+    @handle_response
+    def get_artist(self, artist_id: int) -> Response or str:
+        url = f"{self.base_url}/artists/{artist_id}"
+        return requests.get(url, params=self.base_params)
+
     def get_artist_songs(self, artist_id: int) -> list:
+        artist_name = self.get_artist(artist_id)["artist"]["name"].lower()
         page_no = 1
         songs = []
         while True:
             response = self.get_artist_song_page(artist_id, page_no)
             for song in response["songs"]:
                 passed_filter = self.title_filter(song["title"])
-                if song["lyrics_state"] != "complete" or not passed_filter:
+                is_primary_artist = artist_name == song["primary_artist"]["name"].lower()
+                if song["lyrics_state"] != "complete" or not passed_filter or not is_primary_artist:
                     continue
 
                 song_data = self.get_song_data(song)

@@ -26,3 +26,5 @@ class TestIndex:
             assert response.status_code == 200
             assert b"""<a class="action" href="/artist?artist_id=1"><h1>metallica</h1></a>""" in response.data
             assert b"""<a class="action" href="/artist?artist_id=2"><h1>metallica 2</h1></a>""" in response.data
+
+        mock_find_artists.assert_called_with("metallica")
