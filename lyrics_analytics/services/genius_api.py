@@ -32,13 +32,13 @@ class GeniusService:
         return wrapper
 
     @handle_response
-    def search_artist(self, artist_name: str) -> Response:
+    def search_artist(self, artist_name: str) -> Response or dict:
         url = f"{self.base_url}/search"
         params = self.base_params
         params["q"] = artist_name
         return requests.get(url=url, params=params)
     
-    def find_artists(self, artist_name: str) -> list[dict] | None:
+    def find_artists(self, artist_name: str) -> list[dict] or None:
         response = self.search_artist(artist_name)
         if response is None:
             print("Not found:", artist_name)
@@ -56,25 +56,23 @@ class GeniusService:
         return self.cache["artists_found"]
 
     @handle_response
-    def get_artist_song_page(self, artist_id: int, page_no: int) -> Response:
+    def get_artist_song_page(self, artist_id: int, page_no: int) -> Response or dict:
         url = f"{self.base_url}/artists/{artist_id}/songs"
         params = self.base_params
         params["page"] = page_no
         params["per_page"] = 50  # max per page
         return requests.get(url=url, params=params)
 
-    def get_artist_songs(self, artist_id: int, page_limit: int) -> list:
+    def get_artist_songs(self, artist_id: int) -> list:
         page_no = 1
         songs = []
-        while page_no <= page_limit:
+        while True:
             response = self.get_artist_song_page(artist_id, page_no)
             for song in response["songs"]:
                 passed_filter = self.title_filter(song["title"])
-                if song["lyrics_state"] != "complete":
+                if song["lyrics_state"] != "complete" or not passed_filter:
                     continue
-                elif not passed_filter:
-                    continue
-                
+
                 song_data = self.get_song_data(song)
                 songs.append(song_data)
                     
@@ -82,7 +80,7 @@ class GeniusService:
                 break
             
             page_no += 1
-        
+
         return songs   
     
     @staticmethod
@@ -114,7 +112,7 @@ class GeniusService:
 
 
 def connect_genius() -> tuple:
-    config = dotenv_values(".env")
+    config = dotenv_values(".env.secrets")
     base_url = "http://api.genius.com"
     access_token = config["GENIUS_CLIENT_ACCESS_TOKEN"]
     return base_url, access_token
@@ -126,16 +124,16 @@ def find_artists(artist_name):
     return genius_service.find_artists(artist_name)
 
 
-def get_artist_data(artist_id, page_limit):
+def get_artist_data(artist_id):
     base_url, access_token = connect_genius()
     genius_service = GeniusService(base_url, access_token)
-    return genius_service.get_artist_songs(artist_id, page_limit)
+    return genius_service.get_artist_songs(artist_id)
 
 
 def main():
     artists_found = find_artists("metallica")
     print(artists_found)
-    songs = get_artist_data(artists_found[0]["id"], 1)
+    songs = get_artist_data(artists_found[0]["id"])
     print(songs)
 
 

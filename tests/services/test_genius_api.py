@@ -129,16 +129,16 @@ class TestGeniusService:
         
     ):
         mock_requests.get.return_value = ping_is_true
-        mock_get_artist_song_page.return_value = {"songs": [
-                {"title": "some_title", "lyrics_state": "complete"}
-            ], "next_page": 1
-        }
+        mock_get_artist_song_page.side_effect = [
+            {"songs": [{"title": "some_title", "lyrics_state": "complete"}], "next_page": 1},
+            {"songs": [{"title": "some_title", "lyrics_state": "complete"}], "next_page": None}
+        ]
         mock_get_song_data.return_value = {"song": "data"}
         mock_title_filter.return_value = True
         
         test_instance = GeniusService("url", "apikey")
         
-        actual = test_instance.get_artist_songs(1, 2)
+        actual = test_instance.get_artist_songs(1)
         
         assert actual == [{"song": "data"}, {"song": "data"}]
         

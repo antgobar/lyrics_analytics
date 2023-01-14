@@ -6,7 +6,7 @@ services:
     build: .
     ports:
       - "5000:5000"
-    command: flask --app app --debug run -h 0.0.0.0
+    command: flask --app lyrics_analytics.api --debug run -h 0.0.0.0
     volumes:
       - .:/usr/src/app
     env_file:
@@ -17,7 +17,7 @@ services:
 
   worker:
     build: .
-    command: celery --app app.celery worker --loglevel=info
+    command: celery --app lyrics_analytics.tasks.tasks.celery worker --loglevel=info
     volumes:
       - .:/usr/src/app
     env_file:

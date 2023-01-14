@@ -8,8 +8,6 @@
   <form method="post">
     <label for="name">Artist Name</label>
     <input name="name" id="name"required>
-    <label for="pages">Pages</label>
-    <input type="number" min=1 name="pages" id="pages" value="1">
     <input type="submit" value="Search">
   </form>
   {% if artists|length > 0 %}
@@ -17,12 +15,10 @@
       <article class="post">
         <header>
           <div>
-            <a class="action" href="{{ url_for('search.artist', artist_id=artist['id'], pages=pages) }}"><h1>{{ artist['name'] }}</h1></a>
+            <a class="action" href="{{ url_for('search.artist', artist_id=artist['id']) }}"><h1>{{ artist['name'] }}</h1></a>
           </div>
         </header>
       </article>
-      {% if not loop.last %}
-      {% endif %}
     {% endfor %}
   {% endif %}
 {% endblock %}

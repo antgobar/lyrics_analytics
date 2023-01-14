@@ -14,7 +14,6 @@ def index():
         return render_template("search/index.html")
 
     artist_name = request.form["name"]
-    pages = request.form["pages"]
     error = None
     if not artist_name:
         error = "Artist name required."
@@ -28,12 +27,13 @@ def index():
         flash(f"No artists found under name: {artist_name}")
         return render_template("search/index.html")
 
-    return render_template("search/index.html", artists=found_artists, pages=pages)
+    return render_template("search/index.html", artists=found_artists)
 
 
-@bp.route("/<artist_id>/<pages>")
-def artist(artist_id, pages):
-    data = get_artist_data(artist_id, int(pages))
+@bp.route("/artist")
+def artist():
+    artist_id = request.args.get("artist_id")
+    data = get_artist_data(artist_id)
     if len(data) == 0:
         flash("No artist data")
         return render_template("search/index.html")

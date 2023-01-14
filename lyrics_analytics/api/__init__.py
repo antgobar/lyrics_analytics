@@ -22,7 +22,7 @@ def create_app(test_config=None):
 
     @app.route("/test")
     def in_test():
-        return "Lyrics Analytics is being built"
+        return {"lyrics_analytics: test_endpoint"}, 200
 
     from . import search
 
