@@ -22,6 +22,10 @@ class GeniusService:
         else:
             raise ConnectionError("Unable to connect")
 
+    def create_session(self):
+        session = requests.Session()
+        session.headers.update()
+
     @staticmethod
     def handle_response(func) -> Callable:
         def wrapper(*args, **kwargs) -> dict:
@@ -123,26 +127,3 @@ def connect_genius() -> tuple:
     base_url = "http://api.genius.com"
     access_token = config["GENIUS_CLIENT_ACCESS_TOKEN"]
     return base_url, access_token
-
-
-def find_artists(artist_name):
-    base_url, access_token = connect_genius()
-    genius_service = GeniusService(base_url, access_token)
-    return genius_service.find_artists(artist_name)
-
-
-def get_artist_data(artist_id):
-    base_url, access_token = connect_genius()
-    genius_service = GeniusService(base_url, access_token)
-    return genius_service.get_artist_songs(artist_id)
-
-
-def main():
-    artists_found = find_artists("metallica")
-    print(artists_found)
-    songs = get_artist_data(artists_found[0]["id"])
-    print(songs)
-
-
-if __name__ == "__main__":
-    main()

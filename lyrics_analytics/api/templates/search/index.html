@@ -10,15 +10,4 @@
     <input name="name" id="name"required>
     <input type="submit" value="Search">
   </form>
-  {% if artists|length > 0 %}
-    {% for artist in artists %}
-      <article class="post">
-        <header>
-          <div>
-            <a class="action" href="{{ url_for('search.artist', artist_id=artist['id']) }}"><h1>{{ artist['name'] }}</h1></a>
-          </div>
-        </header>
-      </article>
-    {% endfor %}
-  {% endif %}
 {% endblock %}

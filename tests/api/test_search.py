@@ -14,6 +14,15 @@ class TestIndex:
             assert b"""<label for="name">Artist Name</label>""" in response.data
             assert b"""<input name="name" id="name"required>""" in response.data
 
+    @pytest.mark.parametrize("data", [
+        "metallica", ""
+    ])
+    def test_index_post(self, data):
+        app = create_app()
+        client = app.test_client()
+        response = client.post("/", data={"name": data})
+        assert response.status_code == 302
+
     @patch("lyrics_analytics.api.search.find_artists")
     def test_index_post(self, mock_find_artists):
         app = create_app()
