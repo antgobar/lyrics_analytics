@@ -1,25 +1,9 @@
-import pika
+from lyrics_analytics.background.register import TaskRegister
 
-from mq_connection import mq_connection
-
-
-def task(queue, message):
-    connection = mq_connection()
-    channel = connection.channel()
-
-    channel.queue_declare(queue=queue, durable=True)
-
-    channel.basic_publish(
-        exchange="",
-        routing_key=queue,
-        body=message,
-        properties=pika.BasicProperties(
-            delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
-        )
-    )
-    print(" [x] Sent %r" % message)
-    connection.close()
+register = TaskRegister()
+task = register.register_func
 
 
-if __name__ == "__main__":
-    task("artist_name_query", "metallica")
+@task
+def my_first_task(*args, **kwargs):
+    return args, kwargs

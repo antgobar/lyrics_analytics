@@ -1,10 +1,14 @@
-import pika
+from lyrics_analytics.background.mq_connection import mq_connection
+from lyrics_analytics.background.register import TaskRegister
 
-from mq_connection import mq_connection
+
+task_register = TaskRegister()
 
 
-def task_find_artist():
-    return "metallica"
+def callback(ch, method, properties, body):
+    print(" [x] Received %r" % body.decode())
+    print(" [x] Done")
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def worker(queue):
@@ -13,11 +17,6 @@ def worker(queue):
     channel.queue_declare(queue=queue, durable=True)
     print(' [*] Waiting for messages. To exit press CTRL+C')
 
-    def callback(ch, method, properties, body):
-        print(" [x] Received %r" % body.decode())
-        print(" [x] Done")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue=queue, on_message_callback=callback)
 
@@ -25,4 +24,4 @@ def worker(queue):
 
 
 if __name__ == '__main__':
-    worker("artist_name_query")
+    worker("my_first_task")
