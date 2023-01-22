@@ -1,5 +1,7 @@
+import json
+
 from lyrics_analytics.background.mq_connection import mq_connection
-from lyrics_analytics.background.register import TaskRegister
+from lyrics_analytics.background.task import TaskRegister
 
 
 task_register = TaskRegister()
@@ -7,6 +9,9 @@ task_register = TaskRegister()
 
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body.decode())
+    # func_def = json.loads(body.decode())
+    # result = task_register.run_task(func_def["name"], func_def["args"], func_def["kwargs"])
+    # print(f" [x] {result}")
     print(" [x] Done")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -24,4 +29,4 @@ def worker(queue):
 
 
 if __name__ == '__main__':
-    worker("my_first_task")
+    worker("task_queue")

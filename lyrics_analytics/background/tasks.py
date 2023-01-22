@@ -1,9 +1,10 @@
-from lyrics_analytics.background.register import TaskRegister
+from lyrics_analytics.background.task import TaskRegister
 
-register = TaskRegister()
-task = register.register_func
+
+task = TaskRegister().register_task
 
 
 @task
 def my_first_task(*args, **kwargs):
+    print(args, kwargs)
     return args, kwargs
