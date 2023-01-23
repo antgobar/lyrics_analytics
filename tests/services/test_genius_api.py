@@ -23,7 +23,7 @@ class TestGeniusService:
         test_instance = GeniusService("url", "apikey")
         
         assert test_instance.base_url == "url"
-        assert test_instance.cache == {"titles": [], "artists_found": []}
+        assert test_instance.titles == []
         assert test_instance.ping() is True
         
     @pytest.mark.parametrize(("ok_status", "g_status"), [
@@ -73,11 +73,12 @@ class TestGeniusService:
         def func():
             return mock_response
 
-        with pytest.raises(RequestException):
+        with pytest.raises(ConnectionError) as err:
             func()
+        assert "Unable to connect" in str(err.value)
 
     @patch("lyrics_analytics.services.genius_api.GeniusService.search_artist")
-    @pytest.mark.parametrize(("search_artist_return", "expected_cache", "expected"), [
+    @pytest.mark.parametrize(("search_artist_return", "expected"), [
         (
             {
                 "hits": [
@@ -90,13 +91,9 @@ class TestGeniusService:
             [
                 {"id": 1, "name": 'artist_A'},
                 {"id": 3, "name": 'artist_A_and_B'}
-            ],
-            [
-                {"id": 1, "name": 'artist_A'},
-                {"id": 3, "name": 'artist_A_and_B'}
             ]
         ),
-        (None, [], None)
+        (None, None)
     ])
     def test_find_artists(
         self, 
@@ -104,7 +101,6 @@ class TestGeniusService:
         mock_requests, 
         ping_is_true, 
         search_artist_return,
-        expected_cache,
         expected
     ):
         mock_requests.get.return_value = ping_is_true
@@ -112,9 +108,8 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
 
-        assert test_instance.cache["artists_found"] == []
+        assert test_instance.titles == []
         assert test_instance.find_artists("Artist_a") == expected
-        assert test_instance.cache["artists_found"] == expected_cache
         mock_search_artist.assert_called_with("Artist_a")
 
     @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
@@ -180,4 +175,4 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
         
-        assert test_instance.title_filter("title") == True
+        assert test_instance.title_filter("title") is True

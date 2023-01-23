@@ -6,15 +6,14 @@ from requests.models import Response
 from dotenv import dotenv_values
 
 
-# ps -o pid,rss -C python3.10 - to find memory usage
-
 class GeniusService:
-    def __init__(self, base_url: str, access_token: str) -> None:
+    def __init__(self, base_url: str, access_token: str, test_connection=True) -> None:
         self.base_url = base_url
         self.base_params = {"access_token": access_token}
-        self.ping()
-        self.cache = {"titles": [], "artists_found": []}
-        
+        self.titles = []
+        if test_connection:
+            self.ping()
+
     def ping(self):
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
         if response.ok and response.json()["meta"]["status"] == 200:
@@ -22,17 +21,13 @@ class GeniusService:
         else:
             raise ConnectionError("Unable to connect")
 
-    def create_session(self):
-        session = requests.Session()
-        session.headers.update()
-
     @staticmethod
     def handle_response(func) -> Callable:
         def wrapper(*args, **kwargs) -> dict:
             response = func(*args, **kwargs)
             if response.ok and response.json()["meta"]["status"] == 200:
                 return response.json()["response"]
-            raise RequestException()
+            raise ConnectionError("Unable to connect")
         return wrapper
 
     @handle_response
@@ -56,8 +51,7 @@ class GeniusService:
                     {"id": artist_data["id"], "name": artist_data["name"]}
                 )
 
-        self.cache["artists_found"] = list({artist["id"]: artist for artist in artists_found}.values())
-        return self.cache["artists_found"]
+        return list({artist["id"]: artist for artist in artists_found}.values())
 
     @handle_response
     def get_artist_song_page(self, artist_id: int, page_no: int) -> Response or dict:
@@ -92,6 +86,7 @@ class GeniusService:
             
             page_no += 1
 
+        self.titles = []
         return songs   
     
     @staticmethod
@@ -115,10 +110,10 @@ class GeniusService:
             if pattern in title:
                 return False
         
-        if title in self.cache["titles"]:
+        if title in self.titles:
             return False
         
-        self.cache["titles"].append(title)
+        self.titles.append(title)
         return True
 
 
@@ -127,3 +122,7 @@ def connect_genius() -> tuple:
     base_url = "http://api.genius.com"
     access_token = config["GENIUS_CLIENT_ACCESS_TOKEN"]
     return base_url, access_token
+
+
+def genius_service(test_connection=True):
+    return GeniusService(*connect_genius(), test_connection=test_connection)

@@ -1,11 +1,10 @@
-from lyrics_analytics.background.tasks import my_first_task
+import json
 
+from lyrics_analytics import Task
 
-def route_a():
-    return my_first_task("a", "b", c="c", d="d")
-
-
-result = route_a()
-
-
+func_def = {
+    "name": "find_artists",
+    "args": ("metallica",)
+}
+Task.send_message("task_queue", json.dumps(func_def))
 
