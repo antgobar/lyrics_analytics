@@ -18,6 +18,7 @@ services:
   worker:
     build: .
     command: python lyrics_analytics/background/worker.py
+    restart: always
     volumes:
       - .:/usr/src/app
     env_file:

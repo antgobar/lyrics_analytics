@@ -1,7 +1,6 @@
 from typing import Callable
 
 import requests
-from requests.exceptions import RequestException
 from requests.models import Response
 from dotenv import dotenv_values
 
