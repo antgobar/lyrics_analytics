@@ -1,10 +1,10 @@
 import json
+import time
 
-from lyrics_analytics import Task
+from lyrics_analytics.background.rabbitmq import RabbitService
 
-func_def = {
-    "name": "find_artists",
-    "args": ("metallica",)
-}
-Task.send_message("task_queue", json.dumps(func_def))
 
+task_id = RabbitService.submit_task(
+    "find_artists",
+    "coldplay"
+)

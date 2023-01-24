@@ -1,5 +1,5 @@
-from lyrics_analytics import Task
+from lyrics_analytics.background.rabbitmq import RabbitService
 
 
 if __name__ == "__main__":
-    Task.worker("task_queue")
+    RabbitService.worker("task_queue")
