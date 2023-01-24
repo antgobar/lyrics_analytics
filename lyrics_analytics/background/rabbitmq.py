@@ -2,8 +2,12 @@ import json
 import uuid
 
 import pika
+from redis import Redis
 
 from lyrics_analytics.background.register import REGISTERED_TASKS
+
+
+r = Redis()
 
 
 def run_task(name, *args, **kwargs):
@@ -56,14 +60,16 @@ class RabbitService:
         print(" [x] Received %r" % body.decode())
         task_def = json.loads(body)
         task_id = task_def["id"]
+        r.mset({task_id: "PENDING"})
         result = run_task(task_def["name"], *task_def.get("args"), **task_def.get("kwargs"))
+        r.mset({task_id: str(result)})
         print(f" [x] {result}")
         print(" [x] Done")
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     @classmethod
     def get_result(cls, task_id):
-        return None
+        return r.get(task_id)
 
     @classmethod
     def worker(cls, queue):
