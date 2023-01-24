@@ -1,4 +1,3 @@
-import json
 import time
 
 from lyrics_analytics.background.rabbitmq import RabbitService
@@ -10,9 +9,9 @@ task_id = RabbitService.submit_task(
 )
 
 while True:
-    result = RabbitService.get_result(task_id).decode()
+    result = RabbitService.get_result(task_id)
     print(result)
-    if result != "PENDING":
+    if result.decode() != "PENDING":
         break
 
     time.sleep(1)

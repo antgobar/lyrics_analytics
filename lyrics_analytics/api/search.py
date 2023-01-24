@@ -4,6 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from lyrics_analytics.services.genius_api import connect_genius, GeniusService
+from lyrics_analytics.background.rabbitmq import RabbitService
 
 
 bp = Blueprint("search", __name__)
@@ -30,11 +31,15 @@ def index():
 @bp.route("/artists")
 def artists():
     artist_name = request.args.get("name")
-    found_artists = genius_service.find_artists(artist_name)
-    if len(found_artists) == 0:
-        flash(f"No artists found under name: {artist_name}")
-        return redirect(url_for("index"))
-    return render_template("search/artists-found.html", artists=found_artists)
+    task_id = RabbitService.submit_task(
+        "find_artists", artist_name
+    )
+    return task_id
+    # found_artists = genius_service.find_artists(artist_name)
+    # if len(found_artists) == 0:
+    #     flash(f"No artists found under name: {artist_name}")
+    #     return redirect(url_for("index"))
+    # return render_template("search/artists-found.html", artists=found_artists)
 
 
 @bp.route("/artist")
