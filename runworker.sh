@@ -1,1 +1,0 @@
-poetry run python lyrics_analytics/background/worker.py

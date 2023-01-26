@@ -2,32 +2,24 @@ import json
 import uuid
 
 import pika
-from redis import Redis
-
-from lyrics_analytics.background.register import REGISTERED_TASKS
 
 
-r = Redis()
+class MessageBroker:
+    def __init__(self, task_runner: callable, cache, connection_url=None) -> None:
+        self.task_runner = task_runner
+        self.cache = cache
+        self.connection_url = connection_url
 
-
-def run_task(name, *args, **kwargs):
-    tasks = {task.__name__: task for task in REGISTERED_TASKS}
-    return tasks[name](*args, **kwargs)
-
-
-class RabbitService:
-
-    @classmethod
-    def mq_connection(cls):
+    @staticmethod
+    def mq_connection():
         return pika.BlockingConnection(
             pika.ConnectionParameters(
-                credentials=pika.PlainCredentials("rabbit", "rabbit")
+                credentials=pika.PlainCredentials("rabbitmq", "rabbitmq")
             )
         )
 
-    @classmethod
-    def send_message(cls, queue, message):
-        connection = cls.mq_connection()
+    def send_message(self, queue, message):
+        connection = self.mq_connection()
         channel = connection.channel()
 
         channel.queue_declare(queue=queue, durable=True)
@@ -43,8 +35,7 @@ class RabbitService:
         print(" [x] Sent %r" % message)
         connection.close()
 
-    @classmethod
-    def submit_task(cls, name, *args, **kwargs):
+    def submit_task(self, queue, name, *args, **kwargs):
         task_id = str(uuid.uuid4())
         func_def = {
             "name": name,
@@ -52,33 +43,34 @@ class RabbitService:
             "kwargs": kwargs,
             "id": task_id
         }
-        cls.send_message("task_queue", json.dumps(func_def))
+        self.send_message(queue, json.dumps(func_def))
         return task_id
 
-    @classmethod
-    def callback(cls, ch, method, properties, body):
+    def callback(self, ch, method, properties, body):
         print(" [x] Received %r" % body.decode())
+
         task_def = json.loads(body)
-        task_id = task_def["id"]
-        r.mset({task_id: "PENDING"})
-        result = run_task(task_def["name"], *task_def.get("args"), **task_def.get("kwargs"))
-        r.mset({task_id: str(result)})
+        self.cache.set_task(task_def["id"])
+
+        result = self.task_runner(
+            task_def["name"],
+            *task_def.get("args"),
+            **task_def.get("kwargs")
+        )
+
+        self.cache.update_task(task_def["id"], result)
+
         print(f" [x] {result}")
         print(" [x] Done")
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    @classmethod
-    def get_result(cls, task_id):
-        return r.get(task_id)
-
-    @classmethod
-    def worker(cls, queue):
-        channel = cls.mq_connection().channel()
+    def worker(self, queue):
+        channel = self.mq_connection().channel()
 
         channel.queue_declare(queue=queue, durable=True)
         print(' [*] Waiting for messages. To exit press CTRL+C')
 
         channel.basic_qos(prefetch_count=1)
-        channel.basic_consume(queue=queue, on_message_callback=cls.callback)
+        channel.basic_consume(queue=queue, on_message_callback=self.callback)
 
         channel.start_consuming()

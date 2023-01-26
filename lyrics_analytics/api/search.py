@@ -1,13 +1,19 @@
+from threading import Thread
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
 
 from lyrics_analytics.services.genius_api import connect_genius, GeniusService
-from lyrics_analytics.background.rabbitmq import RabbitService
+from lyrics_analytics.background.task import Task
 
 
 bp = Blueprint("search", __name__)
+
+task = Task()
+task.start_worker()
+
 genius_service = GeniusService(*connect_genius())
 
 
@@ -31,7 +37,7 @@ def index():
 @bp.route("/artists")
 def artists():
     artist_name = request.args.get("name")
-    task_id = RabbitService.submit_task(
+    task_id = task.send_task(
         "find_artists", artist_name
     )
     return task_id

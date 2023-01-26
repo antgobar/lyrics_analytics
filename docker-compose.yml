@@ -6,26 +6,15 @@ services:
     build: .
     ports:
       - "5000:5000"
-    command: flask --app lyrics_analytics.api --debug run -h 0.0.0.0
     volumes:
       - .:/usr/src/app
-    env_file:
-      - .env
+    environment:
+      - FLASK_DEBUG=1
     depends_on:
       - redis
       - rabbit
-
-  worker:
-    build: .
-    command: python lyrics_analytics/background/worker.py
-    restart: always
-    volumes:
-      - .:/usr/src/app
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - rabbit
+    networks:
+      rabbit-network:
 
   redis:
     image: redis:6-alpine
@@ -34,8 +23,15 @@ services:
 
   rabbit:
     image: rabbitmq:3-management-alpine
-    env_file:
-      - '.env'
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      rabbit-network:
+
+networks:
+  rabbit-network:
+    driver: bridge
