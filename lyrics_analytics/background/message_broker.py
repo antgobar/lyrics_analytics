@@ -1,7 +1,9 @@
 import json
 import uuid
+import time
 
 import pika
+from pika.exceptions import AMQPConnectionError
 
 
 class MessageBroker:
@@ -11,12 +13,16 @@ class MessageBroker:
         self.connection_url = connection_url
 
     @staticmethod
-    def mq_connection():
-        return pika.BlockingConnection(
-            pika.ConnectionParameters(
-                credentials=pika.PlainCredentials("rabbitmq", "rabbitmq")
-            )
-        )
+    def mq_connection(attempts=3):
+        credentials = pika.PlainCredentials("rabbitmq", "rabbitmq")
+        parameters = pika.ConnectionParameters("rabbit", 5672, "/", credentials=credentials)
+        while attempts < 0:
+            try:
+                return pika.BlockingConnection(parameters)
+            except AMQPConnectionError:
+                print("RabbitMQ Connection Error")
+                time.sleep(2)
+                attempts -= 1
 
     def send_message(self, queue, message):
         connection = self.mq_connection()

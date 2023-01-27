@@ -1,1 +1,2 @@
-poetry run flask --app lyrics_analytics.api --debug run -h 0.0.0.0
+docker build -t flask-app .
+docker run -d 5000:5000 flask-app
