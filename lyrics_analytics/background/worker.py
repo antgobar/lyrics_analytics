@@ -1,4 +1,11 @@
+import os
+
 from lyrics_analytics.background.task import Task
 
-task = Task(broker_url="amqp://guest:guest@localhost:5672/", cache_host="localhost")
-task.start_worker()
+
+if __name__ == "__name__":
+    task = Task(
+        broker_url=os.getenv("BROKER_URL", "amqp://guest:guest@localhost:5672/"),
+        cache_host=os.getenv("CACHE_HOST", "localhost")
+    )
+    task.start_worker()

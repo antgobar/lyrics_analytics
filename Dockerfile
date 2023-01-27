@@ -10,4 +10,3 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 FROM build as run
 COPY --from=build /usr/src/app/lyrics_analytics/ /usr/src/app/lyrics_analytics/
-ENTRYPOINT ["flask", "--app", "lyrics_analytics.api", "--debug", "run", "-h", "0.0.0.0"]

@@ -1,4 +1,4 @@
-from threading import Thread
+import os
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
@@ -10,7 +10,10 @@ from lyrics_analytics.background.task import Task
 
 bp = Blueprint("search", __name__)
 
-task = Task(broker_url="amqp://guest:guest@localhost:5672/", cache_host="localhost")
+task = Task(
+    broker_url=os.getenv("BROKER_URL", "amqp://guest:guest@localhost:5672/"),
+    cache_host=os.getenv("CACHE_HOST", "localhost")
+)
 
 
 @bp.route("/", methods=("GET", "POST"))

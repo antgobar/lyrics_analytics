@@ -8,10 +8,15 @@ from pika.exceptions import AMQPConnectionError
 class MessageBroker:
     def __init__(self, url=None, callback_handler: callable=None) -> None:
         self.url = url
-        self.connection = self.connection()
+        self.connection = self.create_connection()
         self.callback_handler = callback_handler if callback_handler else lambda x: x
 
-    def connection(self, attempts=3):
+    def check_connection(self):
+        if not self.connection or self.connection.is_closed:
+            self.connection = self.create_connection()
+        return self.connection
+
+    def create_connection(self, attempts=5):
         parameters = pika.URLParameters(self.url)
         while attempts > 0:
             try:
@@ -27,7 +32,7 @@ class MessageBroker:
                 time.sleep(1)
 
     def send_message(self, queue, message):
-        connection = self.connection
+        connection = self.check_connection()
         channel = connection.channel()
 
         channel.queue_declare(queue=queue, durable=True)
@@ -51,7 +56,7 @@ class MessageBroker:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def consumer(self, queue):
-        connection = self.connection
+        connection = self.check_connection()
         channel = connection.channel()
         print(' [*] Waiting for messages. To exit press CTRL+C')
 

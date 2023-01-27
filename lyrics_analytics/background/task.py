@@ -17,7 +17,7 @@ class Task:
         return tasks[name](*args, **kwargs)
 
     def send_task(self, name, *args, **kwargs):
-        self.submit_task("task_queue", name, *args, **kwargs)
+        return self.submit_task("task_queue", name, *args, **kwargs)
 
     def submit_task(self, queue, name, *args, **kwargs):
         task_id = str(uuid.uuid4())
