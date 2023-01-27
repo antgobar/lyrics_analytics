@@ -4,7 +4,7 @@ ENV PYTHONPATH "${PYTHONPATH}:/usr/src/app/lyrics_analytics"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 COPY lyrics_analytics /usr/src/app/lyrics_analytics
-COPY pyproject.toml poetry.lock README.md /usr/src/app/
+COPY pyproject.toml poetry.lock .env.secrets README.md /usr/src/app/
 RUN pip install poetry==1.3.2
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev

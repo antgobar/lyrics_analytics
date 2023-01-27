@@ -4,9 +4,8 @@ from redis import Redis
 
 
 class RedisCache:
-    def __init__(self, connection_url: str=None) -> None:
-        self.connection_url = connection_url
-        self.red = Redis()
+    def __init__(self, host: str="localhost") -> None:
+        self.red = Redis(host)
         self.create_search_store()
 
     def create_search_store(self):

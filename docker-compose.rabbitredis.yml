@@ -2,18 +2,6 @@ version: '3.8'
 
 services:
 
-  flask:
-    build: .
-    ports:
-      - "5000:5000"
-    volumes:
-      - .:/usr/src/app
-    environment:
-      - FLASK_DEBUG=1
-    depends_on:
-      - redis
-      - rabbit
-
   redis:
     image: redis:6-alpine
     ports:
@@ -24,8 +12,8 @@ services:
   rabbit:
     image: rabbitmq:3-management-alpine
     environment:
-      - RABBITMQ_DEFAULT_USER=rabbitmq
-      - RABBITMQ_DEFAULT_PASS=rabbitmq
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     ports:
       - "5672:5672"
       - "15672:15672"

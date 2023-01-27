@@ -1,5 +1,4 @@
 import json
-import uuid
 import time
 
 import pika
@@ -7,25 +6,28 @@ from pika.exceptions import AMQPConnectionError
 
 
 class MessageBroker:
-    def __init__(self, task_runner: callable, cache, connection_url=None) -> None:
-        self.task_runner = task_runner
-        self.cache = cache
-        self.connection_url = connection_url
+    def __init__(self, url=None, callback_handler: callable=None) -> None:
+        self.url = url
+        self.connection = self.connection()
+        self.callback_handler = callback_handler if callback_handler else lambda x: x
 
-    @staticmethod
-    def mq_connection(attempts=3):
-        credentials = pika.PlainCredentials("rabbitmq", "rabbitmq")
-        parameters = pika.ConnectionParameters("rabbit", 5672, "/", credentials=credentials)
-        while attempts < 0:
+    def connection(self, attempts=3):
+        parameters = pika.URLParameters(self.url)
+        while attempts > 0:
             try:
-                return pika.BlockingConnection(parameters)
+                connection = pika.BlockingConnection(parameters)
+                if connection is None:
+                    print("CONNECTION is None")
+                    time.sleep(1)
+                    continue
+                return connection
             except AMQPConnectionError:
-                print("RabbitMQ Connection Error")
-                time.sleep(2)
                 attempts -= 1
+                print(f"AMQPConnectionError raised - attempts left {attempts}")
+                time.sleep(1)
 
     def send_message(self, queue, message):
-        connection = self.mq_connection()
+        connection = self.connection
         channel = connection.channel()
 
         channel.queue_declare(queue=queue, durable=True)
@@ -41,39 +43,16 @@ class MessageBroker:
         print(" [x] Sent %r" % message)
         connection.close()
 
-    def submit_task(self, queue, name, *args, **kwargs):
-        task_id = str(uuid.uuid4())
-        func_def = {
-            "name": name,
-            "args": args,
-            "kwargs": kwargs,
-            "id": task_id
-        }
-        self.send_message(queue, json.dumps(func_def))
-        return task_id
-
     def callback(self, ch, method, properties, body):
         print(" [x] Received %r" % body.decode())
-
-        task_def = json.loads(body)
-        self.cache.set_task(task_def["id"])
-
-        result = self.task_runner(
-            task_def["name"],
-            *task_def.get("args"),
-            **task_def.get("kwargs")
-        )
-
-        self.cache.update_task(task_def["id"], result)
-
+        result = self.callback_handler(body)
         print(f" [x] {result}")
         print(" [x] Done")
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    def worker(self, queue):
-        channel = self.mq_connection().channel()
-
-        channel.queue_declare(queue=queue, durable=True)
+    def consumer(self, queue):
+        connection = self.connection
+        channel = connection.channel()
         print(' [*] Waiting for messages. To exit press CTRL+C')
 
         channel.basic_qos(prefetch_count=1)

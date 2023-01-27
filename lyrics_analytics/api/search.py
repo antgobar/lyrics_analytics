@@ -5,14 +5,12 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from lyrics_analytics.services.genius_api import connect_genius, GeniusService
 from lyrics_analytics.background.task import Task
 
 
 bp = Blueprint("search", __name__)
 
-task = Task()
-task.start_worker()
+task = Task(broker_url="amqp://guest:guest@localhost:5672/", cache_host="localhost")
 
 
 @bp.route("/", methods=("GET", "POST"))
