@@ -14,8 +14,6 @@ bp = Blueprint("search", __name__)
 task = Task()
 task.start_worker()
 
-genius_service = GeniusService(*connect_genius())
-
 
 @bp.route("/", methods=("GET", "POST"))
 def index():

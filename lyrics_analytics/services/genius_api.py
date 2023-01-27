@@ -1,3 +1,4 @@
+import os
 from typing import Callable
 
 import requests
@@ -117,9 +118,9 @@ class GeniusService:
 
 
 def connect_genius() -> tuple:
-    config = dotenv_values(".env.secrets")
+    local_token = dotenv_values(".env.secrets").get("GENIUS_CLIENT_ACCESS_TOKEN")
+    access_token = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN", local_token)
     base_url = "http://api.genius.com"
-    access_token = config["GENIUS_CLIENT_ACCESS_TOKEN"]
     return base_url, access_token
 
 
