@@ -16,20 +16,6 @@ services:
     depends_on:
       - redis
       - rabbit
-      - worker
-    restart: always
-
-  worker:
-    build: .
-    command: python -m lyrics_analytics.background.worker
-    environment:
-      - BROKER_URL=amqp://guest:guest@rabbit:5672/
-      - CACHE_HOST=redis
-    volumes:
-      - .:/usr/src/app
-    depends_on:
-      - redis
-      - rabbit
     restart: always
 
   redis:

@@ -42,7 +42,7 @@ class GeniusService:
         if response is None:
             print("Not found:", artist_name)
             return
-            
+
         artists_found = []
         for result in response["hits"]:
             if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():

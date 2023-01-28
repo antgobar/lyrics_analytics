@@ -56,8 +56,7 @@ class MessageBroker:
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def consumer(self, queue):
-        connection = self.check_connection()
-        channel = connection.channel()
+        channel = self.create_connection().channel()
         print(' [*] Waiting for messages. To exit press CTRL+C')
 
         channel.basic_qos(prefetch_count=1)

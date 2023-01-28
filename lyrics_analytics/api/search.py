@@ -1,7 +1,8 @@
 import os
+import json
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
 )
 from werkzeug.exceptions import abort
 
@@ -14,6 +15,7 @@ task = Task(
     broker_url=os.getenv("BROKER_URL", "amqp://guest:guest@localhost:5672/"),
     cache_host=os.getenv("CACHE_HOST", "localhost")
 )
+task.start_worker()
 
 
 @bp.route("/", methods=("GET", "POST"))
@@ -30,28 +32,42 @@ def index():
         flash(error)
         return redirect(url_for("index"))
 
-    return redirect(url_for("search.artists", name=name))
+    task_id = task.send_task(
+        "find_artists", name
+    )
+    return redirect(url_for("search.artists", task_id=task_id))
 
 
 @bp.route("/artists")
 def artists():
-    artist_name = request.args.get("name")
-    task_id = task.send_task(
-        "find_artists", artist_name
-    )
-    return task_id
-    # found_artists = genius_service.find_artists(artist_name)
-    # if len(found_artists) == 0:
-    #     flash(f"No artists found under name: {artist_name}")
-    #     return redirect(url_for("index"))
-    # return render_template("search/artists-found.html", artists=found_artists)
+    task_id = request.args.get("task_id")
+    response = task.get_task_result(task_id)
+    if response["status"] == "PENDING":
+        return "Try again later"
+    if response["data"] is None:
+        flash("No artists found")
+        return redirect(url_for("index"))
+    return render_template("search/artists-found.html", artists=response["data"])
 
 
 @bp.route("/artist")
 def artist():
     artist_id = request.args.get("id")
-    data = genius_service.get_artist_songs(int(artist_id))
-    if len(data) == 0:
-        flash("No artist data")
+    artist_name = request.args.get("name")
+    task_id = task.send_task(
+        "get_artist_songs", artist_id
+    )
+
+    return redirect(url_for("search.artist_name", task_id=task_id, name=artist_name))
+
+
+@bp.route("/artist/<name>")
+def artist_name(name):
+    task_id = request.args.get("task_id")
+    response = task.get_task_result(task_id)
+    if response["status"] == "PENDING":
+        return "Try again later"
+    if response["data"] is None:
+        flash("No artist data found")
         return redirect(url_for("index"))
-    return render_template("search/artist-data.html", artist_data=data)
+    return render_template("search/artist-data.html", artist_data=response["data"])

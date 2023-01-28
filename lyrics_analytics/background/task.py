@@ -1,5 +1,6 @@
 import uuid
 import json
+from threading import Thread
 
 from lyrics_analytics.background.cache import RedisCache
 from lyrics_analytics.background.message_broker import MessageBroker
@@ -30,9 +31,6 @@ class Task:
         self.broker.send_message(queue, json.dumps(func_def))
         return task_id
 
-    def start_worker(self):
-        self.broker.consumer("task_queue")
-
     def callback_handler(self, body):
         task_def = json.loads(body)
         self.cache.set_task(task_def["id"])
@@ -45,3 +43,10 @@ class Task:
 
         self.cache.update_task(task_def["id"], result)
         return result
+
+    def start_worker(self):
+        worker_thread = Thread(target=self.broker.consumer, args=("task_queue", ))
+        worker_thread.start()
+
+    def get_task_result(self, task_id):
+        return self.cache.get_task(task_id)

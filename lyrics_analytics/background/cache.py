@@ -25,10 +25,12 @@ class RedisCache:
         self.red.set("searched_artists", json.dumps(searched))
 
     def set_task(self, task_id):
-        self.red.set(task_id, "PENDING")
+        body = {"status": "PENDING", "data": None}
+        self.red.set(task_id, json.dumps(body))
 
     def update_task(self, task_id, result):
-        self.red.set(task_id, json.dumps(result))
+        body = {"status": "SUCCESS", "data": result}
+        self.red.set(task_id, json.dumps(body))
 
-    def get_task_result(self, task_id):
+    def get_task(self, task_id):
         return self.red.get(task_id)
