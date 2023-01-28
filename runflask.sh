@@ -1,2 +1,1 @@
-docker build -t flask-app .
-docker run -p 5000:5000 flask-app
+flask --app lyrics_analytics.api --debug run -h 0.0.0.0

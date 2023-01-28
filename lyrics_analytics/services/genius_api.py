@@ -17,6 +17,7 @@ class GeniusService:
     def ping(self):
         response = requests.get(f"{self.base_url}/songs/1", params=self.base_params)
         if response.ok and response.json()["meta"]["status"] == 200:
+            print("Genius connected")
             return True
         else:
             raise ConnectionError("Unable to connect")
@@ -126,3 +127,7 @@ def connect_genius() -> tuple:
 
 def genius_service(test_connection=True):
     return GeniusService(*connect_genius(), test_connection=test_connection)
+
+
+if __name__ == "__main__":
+    genius_service()

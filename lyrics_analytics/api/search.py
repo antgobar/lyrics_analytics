@@ -41,7 +41,7 @@ def index():
 @bp.route("/artists")
 def artists():
     task_id = request.args.get("task_id")
-    response = task.get_task_result(task_id)
+    response = json.loads(task.get_task_result(task_id))
     if response["status"] == "PENDING":
         return "Try again later"
     if response["data"] is None:
@@ -57,14 +57,13 @@ def artist():
     task_id = task.send_task(
         "get_artist_songs", artist_id
     )
-
     return redirect(url_for("search.artist_name", task_id=task_id, name=artist_name))
 
 
 @bp.route("/artist/<name>")
 def artist_name(name):
     task_id = request.args.get("task_id")
-    response = task.get_task_result(task_id)
+    response = json.loads(task.get_task_result(task_id))
     if response["status"] == "PENDING":
         return "Try again later"
     if response["data"] is None:
