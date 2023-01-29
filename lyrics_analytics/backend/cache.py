@@ -5,30 +5,29 @@ from redis import Redis
 
 class RedisCache:
     def __init__(self, host="localhost") -> None:
-        self.red = Redis(host)
-        self.create_search_store()
+        self._redis = Redis(host)
 
-    def create_search_store(self):
-        if self.red.get("searched_artists") is None:
+    def create_store(self, name):
+        if self._redis.get(name) is None:
             store = {}
-            self.red.set("searched_artists", json.dumps(store))
+            self._redis.set(name, json.dumps(store))
 
-    def search_cache(self, artist):
-        searched = json.loads(self.red.get("searched_artists"))
-        if artist not in searched:
+    def search_store(self, store_name, value):
+        searched = json.loads(self._redis.get(store_name))
+        if value not in searched:
             return
-        return searched[artist]
+        return searched[value]
 
     def cache_search(self, search_artist, found_artists):
-        searched = json.loads(self.red.get("searched_artists"))
+        searched = json.loads(self._redis.get("searched_artists"))
         searched[search_artist] = found_artists
-        self.red.set("searched_artists", json.dumps(searched))
+        self._redis.set("searched_artists", json.dumps(searched))
 
     def set_key(self, key, body):
-        self.red.set(key, json.dumps(body))
+        self._redis.set(key, json.dumps(body))
 
     def get_value(self, key, none_value):
-        value = self.red.get(key)
+        value = self._redis.get(key)
         if value is None:
             return none_value
         return json.loads(value)

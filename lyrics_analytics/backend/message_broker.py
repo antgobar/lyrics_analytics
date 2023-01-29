@@ -7,17 +7,17 @@ from pika.exceptions import AMQPConnectionError
 
 class MessageBroker:
     def __init__(self, url=None, callback_handler: callable=None) -> None:
-        self.url = url
-        self.connection = self.create_connection()
+        self._url = url
+        self._connection = self.create_connection()
         self.callback_handler = callback_handler if callback_handler else lambda x: x
 
     def check_connection(self):
-        if not self.connection or self.connection.is_closed:
-            self.connection = self.create_connection()
-        return self.connection
+        if not self._connection or self._connection.is_closed:
+            self._connection = self.create_connection()
+        return self._connection
 
     def create_connection(self, attempts=5):
-        parameters = pika.URLParameters(self.url)
+        parameters = pika.URLParameters(self._url)
         while attempts > 0:
             try:
                 connection = pika.BlockingConnection(parameters)
