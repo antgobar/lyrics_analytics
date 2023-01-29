@@ -1,6 +1,7 @@
 import uuid
 import json
 from threading import Thread
+import time
 
 from lyrics_analytics.backend.cache import RedisCache
 from lyrics_analytics.backend.message_broker import MessageBroker
@@ -42,7 +43,7 @@ class Task:
         for service in self.services:
             service_definition = service.service()
             if main in service_definition:
-                return service_definition[main](*args, **kwargs)
+                return service_definition[main][method](*args, **kwargs)
 
     def callback_handler(self, body):
         task_def = json.loads(body)
@@ -58,7 +59,13 @@ class Task:
         self._cache.set_key(task_def["id"], {"status": "SUCCESS", "data": result})
         return result
 
-    def get_task_result(self, task_id):
+    def get_task_result(self, task_id, get_now=False):
+        if get_now:
+            while True:
+                result = self._cache.get_value(task_id, {"status": None, "data": None})
+                if result["status"] == "SUCCESS":
+                    return result
+                time.sleep(0.5)
         return self._cache.get_value(task_id, {"status": None, "data": None})
 
     def start_worker(self):

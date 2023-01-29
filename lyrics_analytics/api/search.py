@@ -44,7 +44,7 @@ def index():
 @bp.route("/artists")
 def artists():
     task_id = request.args.get("task_id")
-    response = task.get_task_result(task_id)
+    response = task.get_task_result(task_id, get_now=True)
     if response["status"] is None:
         return "No task found"
     if response["status"] == "PENDING":
