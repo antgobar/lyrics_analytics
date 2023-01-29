@@ -1,5 +1,5 @@
 from unittest.mock import patch
-gitimport json
+import json
 
 import pytest
 

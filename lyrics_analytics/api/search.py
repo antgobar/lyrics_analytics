@@ -7,14 +7,16 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from lyrics_analytics.backend.task import Task
-
+from lyrics_analytics.services.genius_api import GeniusService
 
 bp = Blueprint("search", __name__)
 
+genius = GeniusService("http://api.genius.com", os.getenv("GENIUS_CLIENT_ACCESS_TOKEN"))
 
 task = Task(
-    broker_url=os.getenv("BROKER_URL", "amqp://guest:guest@localhost:5672/"),
-    cache_host=os.getenv("CACHE_HOST", "localhost")
+    message_broker_url=os.getenv("BROKER_URL", "amqp://guest:guest@localhost:5672/"),
+    cache_host=os.getenv("CACHE_HOST", "localhost"),
+    services=(genius, )
 )
 task.start_worker()
 
@@ -34,7 +36,7 @@ def index():
         return redirect(url_for("index"))
 
     task_id = task.send_task(
-        "find_artists", name
+        "GeniusService", "find_artists", name
     )
     return redirect(url_for("search.artists", task_id=task_id))
 
@@ -56,11 +58,11 @@ def artists():
 @bp.route("/artist")
 def artist():
     artist_id = request.args.get("id")
-    artist_name = request.args.get("name")
+    name = request.args.get("name")
     task_id = task.send_task(
-        "get_artist_songs", artist_id
+        "GeniusService", "get_artist_songs", artist_id
     )
-    return redirect(url_for("search.artist_name", task_id=task_id, name=artist_name))
+    return redirect(url_for("search.artist_name", task_id=task_id, name=name))
 
 
 @bp.route("/artist/<name>")
@@ -72,4 +74,4 @@ def artist_name(name):
     if response["data"] is None:
         flash("No artist data found")
         return redirect(url_for("index"))
-    return render_template("search/artist-data.html", artist_data=response["data"])
+    return render_template("search/artist-data.html", artist_name=name, artist_data=response["data"])

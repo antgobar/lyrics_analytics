@@ -22,7 +22,7 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
         
-        assert test_instance.base_url == "url"
+        assert test_instance._base_url == "url"
         assert test_instance.titles == []
         assert test_instance.ping() is True
         
@@ -77,7 +77,7 @@ class TestGeniusService:
             func()
         assert "Unable to connect" in str(err.value)
 
-    @patch("lyrics_analytics.services.genius_api.GeniusService.search_artist")
+    @patch("lyrics_analytics.services.genius_api.GeniusService._search_artist")
     @pytest.mark.parametrize(("search_artist_return", "expected"), [
         (
             {
@@ -112,10 +112,10 @@ class TestGeniusService:
         assert test_instance.find_artists("Artist_a") == expected
         mock_search_artist.assert_called_with("Artist_a")
 
-    @patch("lyrics_analytics.services.genius_api.GeniusService.title_filter")
-    @patch("lyrics_analytics.services.genius_api.GeniusService.get_artist")
-    @patch("lyrics_analytics.services.genius_api.GeniusService.get_song_data")
-    @patch("lyrics_analytics.services.genius_api.GeniusService.get_artist_song_page")
+    @patch("lyrics_analytics.services.genius_api.GeniusService._title_filter")
+    @patch("lyrics_analytics.services.genius_api.GeniusService._get_artist")
+    @patch("lyrics_analytics.services.genius_api.GeniusService._get_song_data")
+    @patch("lyrics_analytics.services.genius_api.GeniusService._get_artist_song_page")
     def test_get_artist_songs(
         self, 
         mock_get_artist_song_page, 
@@ -168,11 +168,11 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
         
-        assert test_instance.get_song_data(song_response) == expected
+        assert test_instance._get_song_data(song_response) == expected
         
     def test_title_filter(self, mock_requests, ping_is_true):
         mock_requests.get.return_value = ping_is_true
         
         test_instance = GeniusService("url", "apikey")
         
-        assert test_instance.title_filter("title") is True
+        assert test_instance._title_filter("title") is True
