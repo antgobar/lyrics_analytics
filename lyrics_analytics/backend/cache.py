@@ -4,7 +4,7 @@ from redis import Redis
 
 
 class RedisCache:
-    def __init__(self, host: str="localhost") -> None:
+    def __init__(self, host="localhost") -> None:
         self.red = Redis(host)
         self.create_search_store()
 
@@ -24,13 +24,11 @@ class RedisCache:
         searched[search_artist] = found_artists
         self.red.set("searched_artists", json.dumps(searched))
 
-    def set_task(self, task_id):
-        body = {"status": "PENDING", "data": None}
-        self.red.set(task_id, json.dumps(body))
+    def set_key(self, key, body):
+        self.red.set(key, json.dumps(body))
 
-    def update_task(self, task_id, result):
-        body = {"status": "SUCCESS", "data": result}
-        self.red.set(task_id, json.dumps(body))
-
-    def get_task(self, task_id):
-        return self.red.get(task_id)
+    def get_value(self, key, none_value):
+        value = self.red.get(key)
+        if value is None:
+            return none_value
+        return json.loads(value)

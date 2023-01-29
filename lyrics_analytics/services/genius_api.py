@@ -7,11 +7,11 @@ from dotenv import dotenv_values
 
 
 class GeniusService:
-    def __init__(self, base_url: str, access_token: str, test_connection=True) -> None:
+    def __init__(self, base_url: str, access_token: str, healthcheck=True) -> None:
         self.base_url = base_url
         self.base_params = {"access_token": access_token}
         self.titles = []
-        if test_connection:
+        if healthcheck:
             self.ping()
 
     def ping(self):
@@ -125,8 +125,8 @@ def connect_genius() -> tuple:
     return base_url, access_token
 
 
-def genius_service(test_connection=True):
-    return GeniusService(*connect_genius(), test_connection=test_connection)
+def genius_service(healthcheck=True):
+    return GeniusService(*connect_genius(), healthcheck=healthcheck)
 
 
 if __name__ == "__main__":

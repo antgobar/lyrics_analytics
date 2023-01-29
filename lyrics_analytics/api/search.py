@@ -2,14 +2,15 @@ import os
 import json
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
+    Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
 
-from lyrics_analytics.background.task import Task
+from lyrics_analytics.backend.task import Task
 
 
 bp = Blueprint("search", __name__)
+
 
 task = Task(
     broker_url=os.getenv("BROKER_URL", "amqp://guest:guest@localhost:5672/"),
@@ -41,9 +42,11 @@ def index():
 @bp.route("/artists")
 def artists():
     task_id = request.args.get("task_id")
-    response = json.loads(task.get_task_result(task_id))
+    response = task.get_task_result(task_id)
+    if response["status"] is None:
+        return "No task found"
     if response["status"] == "PENDING":
-        return "Try again later"
+        return "Not ready, try again later"
     if response["data"] is None:
         flash("No artists found")
         return redirect(url_for("index"))
@@ -63,7 +66,7 @@ def artist():
 @bp.route("/artist/<name>")
 def artist_name(name):
     task_id = request.args.get("task_id")
-    response = json.loads(task.get_task_result(task_id))
+    response = task.get_task_result(task_id)
     if response["status"] == "PENDING":
         return "Try again later"
     if response["data"] is None:
