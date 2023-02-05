@@ -38,20 +38,7 @@ def index():
     task_id = task.send_task(
         "GeniusService", "find_artists", name
     )
-    return redirect(url_for("search.artists", task_id=task_id))
-
-
-@bp.route("/artists")
-def artists():
-    task_id = request.args.get("task_id")
     response = task.get_task_result(task_id, get_now=True)
-    if response["status"] is None:
-        return "No task found"
-    if response["status"] == "PENDING":
-        return "Not ready, try again later"
-    if response["data"] is None:
-        flash("No artists found")
-        return redirect(url_for("index"))
     return render_template("search/artists-found.html", artists=response["data"])
 
 
@@ -68,7 +55,7 @@ def artist():
 @bp.route("/artist/<name>")
 def artist_name(name):
     task_id = request.args.get("task_id")
-    response = task.get_task_result(task_id)
+    response = task.get_task_result(task_id, get_now=True)
     if response["status"] == "PENDING":
         return "Try again later"
     if response["data"] is None:

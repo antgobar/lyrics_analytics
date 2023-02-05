@@ -65,7 +65,7 @@ class Task:
                 result = self._cache.get_value(task_id, {"status": None, "data": None})
                 if result["status"] == "SUCCESS":
                     return result
-                time.sleep(0.5)
+                time.sleep(1)
         return self._cache.get_value(task_id, {"status": None, "data": None})
 
     def start_worker(self):

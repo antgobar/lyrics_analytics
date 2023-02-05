@@ -5,7 +5,8 @@
 {% endblock %}
 {% block content %}
   {% for data in artist_data %}
-    <p>{{ data['title'] }}</p>
+    <p></p>
+    <a class="action" href="{{ data['lyrics_url'] }}"><h1>{{ data['title'] }}</h1></a>
     {% if not loop.last %}
       <hr>
     {% endif %}
