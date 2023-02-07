@@ -118,11 +118,3 @@ class GeniusService:
         
         self.titles.append(title)
         return True
-
-    def service(self):
-        return {
-            self.__class__.__name__: {
-                self.find_artists.__name__: self.find_artists,
-                self.get_artist_songs.__name__: self.get_artist_songs
-            }
-        }

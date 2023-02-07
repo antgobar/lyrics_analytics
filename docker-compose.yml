@@ -7,16 +7,29 @@ services:
     command: flask --app lyrics_analytics.api --debug run -h 0.0.0.0
     environment:
       - FLASK_DEBUG=1
+      - RESULT_BACKEND=redis://redis:6379
       - BROKER_URL=amqp://guest:guest@rabbit:5672/
-      - CACHE_HOST=redis
     ports:
       - "5000:5000"
     volumes:
       - .:/usr/src/app
     depends_on:
+      - worker
+    restart: always
+
+  worker:
+    build:
+      context: .
+    environment:
+      - FLASK_APP=lyrics_analytics.api
+      - RESULT_BACKEND=redis://redis:6379
+      - BROKER_URL=amqp://guest:guest@rabbit:5672/
+    volumes:
+      - .:/usr/src/app
+    command: celery -A lyrics_analytics.api.celery worker --loglevel=info
+    depends_on:
       - redis
       - rabbit
-    restart: always
 
   redis:
     image: redis:6-alpine

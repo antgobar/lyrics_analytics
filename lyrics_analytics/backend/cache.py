@@ -3,31 +3,27 @@ import json
 from redis import Redis
 
 
-class RedisCache:
+class CacheService:
     def __init__(self, host="localhost") -> None:
         self._redis = Redis(host)
 
-    def create_store(self, name):
-        if self._redis.get(name) is None:
-            store = {}
-            self._redis.set(name, json.dumps(store))
+    def get_store(self, store):
+        if self._redis.get(store) is None:
+            self._redis.set(store, "{}")
+        return json.loads(self._redis.get(store))
 
-    def search_store(self, store_name, value):
-        searched = json.loads(self._redis.get(store_name))
-        if value not in searched:
-            return
-        return searched[value]
+    def is_stored(self, store_name, value):
+        store = self.get_store(store_name)
 
-    def cache_search(self, search_artist, found_artists):
-        searched = json.loads(self._redis.get("searched_artists"))
-        searched[search_artist] = found_artists
-        self._redis.set("searched_artists", json.dumps(searched))
+        if value in store:
+            return True
+        return False
 
-    def set_key(self, key, body):
-        self._redis.set(key, json.dumps(body))
+    def update_store(self, store_name, key, value):
+        store = self.get_store(store_name)
+        store[key] = value
+        self._redis.set(store_name, json.dumps(store))
 
-    def get_value(self, key, none_value):
-        value = self._redis.get(key)
-        if value is None:
-            return none_value
-        return json.loads(value)
+    def get_value(self, store_name, key):
+        store = self.get_store(store_name)
+        return store[key]
