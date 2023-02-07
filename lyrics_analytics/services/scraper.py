@@ -19,8 +19,8 @@ class Scraper:
         return div.get_text()
     
     @staticmethod
-    def clean(lyrics: str) -> list:
-        lyrics = re.sub(r'(\[.*?\])*', '', lyrics)
+    def clean(lyrics: str) -> str:
+        lyrics = re.sub(r'(\[.*?])*', '', lyrics)
         lyrics = re.sub('\n{2}', '\n', lyrics)
         lyrics = lyrics.strip("\n").lower()
 
