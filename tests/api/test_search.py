@@ -7,12 +7,11 @@ from lyrics_analytics.api import create_app
 
 @pytest.fixture()
 def app():
-    with patch("lyrics_analytics.backend.task.Task") as mock_task:
-        app = create_app()
-        app.config.update({
-            "TESTING": True,
-        })
-        yield app
+    app, _ = create_app()
+    app.config.update({
+        "TESTING": True,
+    })
+    yield app
 
 
 @pytest.fixture()
