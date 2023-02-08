@@ -18,7 +18,7 @@ def index():
     if request.method == "GET":
         return render_template("search/index.html")
 
-    name = request.form["name"]
+    name = request.form["artist-name"]
 
     if cache.is_stored("searched_artists", name):
         artists = cache.get_value("searched_artists", name)
