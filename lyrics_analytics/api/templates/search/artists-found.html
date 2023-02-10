@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Artists found{% endblock %}</h1>
-{% endblock %}
+{% block title %}Artists found{% endblock %}
 
 {% block content %}
-  <div id="artists-found">
-    {% for artist in artists %}
-      <article class="post">
-        <header>
-          <div>
-            <a class="action" href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}"><h1>{{ artist['name'] }}</h1></a>
-          </div>
-        </header>
-      </article>
-    {% endfor %}
-  </div>
+<div class="text-center">
+  {% for artist in artists %}
+    <article class="post">
+      <header>
+        <div>
+          <a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="text-warning">
+            {{ artist['name'] }}
+          </a>
+        </div>
+      </header>
+    </article>
+  {% endfor %}
+</div>
 {% endblock %}
