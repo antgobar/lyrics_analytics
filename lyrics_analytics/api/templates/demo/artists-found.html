@@ -6,7 +6,7 @@
 <div class="text-center">
   {% for artist in artists %}
   <div>
-      <a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-outline-warning">
+      <a href="{{ url_for('demo.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-outline-warning">
         {{ artist['name'] }}
       </a>
   </div>

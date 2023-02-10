@@ -18,7 +18,7 @@ def index():
     if request.method == "GET":
         return render_template("search/index.html")
 
-    name = request.form["name"]
+    name = request.form["artist-name"]
 
     if cache.is_stored("searched_artists", name):
         artists = cache.get_value("searched_artists", name)
@@ -34,9 +34,8 @@ def index():
 def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
-
     task = get_artist_songs.delay(artist_id)
-
+    flash(f"Fetching lyrics for {name} - check notifications later")
     return redirect(url_for("search.artist_name", task_id=task.id, name=name))
 
 
