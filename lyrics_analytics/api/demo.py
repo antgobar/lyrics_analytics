@@ -11,14 +11,14 @@ def index():
         return render_template("demo/index.html")
 
     name = request.form["artist-name"]
-
+    flash(f"Looking for {name}")
     found = [
         {"name": name, "id": 1},
         {"name": "Metallica", "id": 2},
         {"name": "Taylor Swift", "id": 3}
     ]
     import time
-    time.sleep(3)
+    time.sleep(1)
     return render_template("demo/artists-found.html", artists=found)
 
 
@@ -26,5 +26,5 @@ def index():
 def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
-
+    flash(f"Fetching lyrics for {name} - check notifications later")
     return render_template("demo/index.html")

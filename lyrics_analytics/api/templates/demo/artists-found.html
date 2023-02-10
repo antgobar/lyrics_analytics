@@ -3,17 +3,14 @@
 {% block title %}Artists found{% endblock %}
 
 {% block content %}
-<div class="list-group">
+<div class="text-center">
   {% for artist in artists %}
-    <article class="post">
-      <header>
-        <div>
-          <a href="{{ url_for('demo.artist', name=artist['name'], id=artist['id']) }}" class="list-group-item list-group-item-action list-group-item-primary">
-            {{ artist['name'] }}
-          </a>
-        </div>
-      </header>
-    </article>
+  <div>
+      <a href="{{ url_for('demo.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-outline-warning">
+        {{ artist['name'] }}
+      </a>
+  </div>
+  <br>
   {% endfor %}
 </div>
 {% endblock %}

@@ -34,9 +34,8 @@ def index():
 def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
-
     task = get_artist_songs.delay(artist_id)
-
+    flash(f"Fetching lyrics for {name} - check notifications later")
     return redirect(url_for("search.artist_name", task_id=task.id, name=name))
 
 

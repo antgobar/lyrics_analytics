@@ -1,14 +1,17 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Songs found for {{ artist_name }}{% endblock %}</h1>
-{% endblock %}
+{% block title %}Artists Data{% endblock %}
+
 {% block content %}
+<div class="text-center">
+  <h2>Artist Data: {{ artist_name }}</h2>
   {% for data in artist_data %}
-    <p></p>
-    <a class="action" href="{{ data['lyrics_url'] }}"><h1>{{ data['title'] }}</h1></a>
-    {% if not loop.last %}
-      <hr>
-    {% endif %}
+  <div>
+    <a class="btn btn-outline-warning" href="{{ data['lyrics_url'] }}">
+      {{ data['title'] }}
+    </a>
+  </div>
+  <br>
   {% endfor %}
+</div>
 {% endblock %}
