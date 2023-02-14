@@ -1,9 +1,8 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from requests.exceptions import RequestException
 
-from lyrics_analytics.services.genius_api import GeniusService
+from lyrics_analytics.services.genius import GeniusService
 
 
 @pytest.fixture
@@ -14,7 +13,7 @@ def ping_is_true():
     return mock_response 
 
 
-@patch("lyrics_analytics.services.genius_api.requests")
+@patch("lyrics_analytics.services.genius.requests")
 class TestGeniusService:
     
     def test_contstructor(self, mock_requests, ping_is_true):
@@ -77,7 +76,7 @@ class TestGeniusService:
             func()
         assert "Unable to connect" in str(err.value)
 
-    @patch("lyrics_analytics.services.genius_api.GeniusService._search_artist")
+    @patch("lyrics_analytics.services.genius.GeniusService._search_artist")
     @pytest.mark.parametrize(("search_artist_return", "expected"), [
         (
             {
@@ -112,10 +111,10 @@ class TestGeniusService:
         assert test_instance.find_artists("Artist_a") == expected
         mock_search_artist.assert_called_with("Artist_a")
 
-    @patch("lyrics_analytics.services.genius_api.GeniusService._title_filter")
-    @patch("lyrics_analytics.services.genius_api.GeniusService._get_artist")
-    @patch("lyrics_analytics.services.genius_api.GeniusService._get_song_data")
-    @patch("lyrics_analytics.services.genius_api.GeniusService._get_artist_song_page")
+    @patch("lyrics_analytics.services.genius.GeniusService._title_filter")
+    @patch("lyrics_analytics.services.genius.GeniusService._get_artist")
+    @patch("lyrics_analytics.services.genius.GeniusService._get_song_data")
+    @patch("lyrics_analytics.services.genius.GeniusService._get_artist_song_page")
     def test_get_artist_songs(
         self, 
         mock_get_artist_song_page, 
@@ -151,19 +150,29 @@ class TestGeniusService:
         mock_get_artist_song_page.assert_called_with(1, 2)
         mock_get_song_data.assert_called_with({"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}})
 
-    def test_get_song_data(self, mock_requests, ping_is_true):
+    @patch("lyrics_analytics.services.genius.GeniusService._parse_date_components")
+    @patch("lyrics_analytics.services.genius.GeniusService._lyrics_stat_summary")
+    @patch("lyrics_analytics.services.scraper.ScraperService.get_lyrics")
+    @patch("lyrics_analytics.services.genius.GeniusService._get_song")
+    def test_get_song_data(self, mock_get_song, mock_scraper, mock_stats, mock_date, mock_requests, ping_is_true):
         mock_requests.get.return_value = ping_is_true
+        mock_get_song.return_value = {"song": {"album": {"name": "some album"}}}
+        mock_scraper.return_value = "some lyrics"
+        mock_stats.return_value = {"stats": "some stats"}
+        mock_date.return_value = "some date"
         song_response = {
             "primary_artist": {"name": "some artist"},
             "title": "some title",
             "url": "some url",
-            "release_date_components": "some date"
+            "release_date_components": "some date",
+            "id": 1
         }
         expected = {
             "name": "some artist",
-            "title": "some title", 
-            "lyrics_url": "some url", 
-            "date": "some date"
+            "title": "some title",
+            "album": "some album",
+            "date": "some date",
+            "lyrics": "some lyrics"
         }
         
         test_instance = GeniusService("url", "apikey")

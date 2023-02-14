@@ -33,10 +33,9 @@ def create_app(test_config=None):
     celery = make_celery(flaskapp)
     celery.set_default()
 
-    from . import search, demo
+    from . import search
 
     flaskapp.register_blueprint(search.bp)
-    flaskapp.register_blueprint(demo.bp)
     flaskapp.add_url_rule("/", endpoint='index')
 
     return flaskapp, celery

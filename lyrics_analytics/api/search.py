@@ -27,7 +27,7 @@ def index():
         artists = find_artists.delay(name).get()
         cache.update_store("searched_artists", name, artists)
 
-    return render_template("search/artists-found.html", artists=artists)
+    return render_template("search/artists.html", artists=artists)
 
 
 @bp.route("/artist")
@@ -36,13 +36,13 @@ def artist():
     name = request.args.get("name")
     task = get_artist_songs.delay(artist_id)
     flash(f"Fetching lyrics for {name} - check notifications later")
-    return redirect(url_for("search.artist_name", task_id=task.id, name=name))
+    return redirect(url_for("search.songs", task_id=task.id, name=name))
 
 
 @bp.route("/artist/<name>")
-def artist_name(name):
+def songs(name):
     task_id = request.args.get("task_id")
     task = get_artist_songs.AsyncResult(task_id)
     if task.ready():
-        return render_template("search/artist-data.html", artist_name=name, artist_data=task.result)
+        return render_template("search/songs.html", artist_name=name, artist_data=task.result)
     return {"status": "Not Ready"}

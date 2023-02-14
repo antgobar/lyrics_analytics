@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %} Lyrics {% endblock %}
+
+{% block content %}
+<div class="text-center">
+  <h2>Artist Data: {{ artist_name }}</h2>
+  {% for data in artist_data %}
+  <div>
+    <a class="btn btn-outline-warning" href="">
+      {{ data['title'] }}
+    </a>
+  </div>
+  <br>
+  {% endfor %}
+</div>
+{% endblock %}

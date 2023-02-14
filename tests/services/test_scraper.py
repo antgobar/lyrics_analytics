@@ -2,16 +2,16 @@ from unittest.mock import patch
 
 import pytest
 
-from lyrics_analytics.services.scraper import Scraper
+from lyrics_analytics.services.scraper import ScraperService
 
 
-@patch("lyrics_analytics.services.scraper.Scraper.clean")
-@patch("lyrics_analytics.services.scraper.Scraper.scrape")
+@patch("lyrics_analytics.services.scraper.ScraperService.clean")
+@patch("lyrics_analytics.services.scraper.ScraperService.scrape")
 def test_scraper_get_lyrics(mock_scrape, mock_clean):
     mock_scrape.return_value = "raw lyrics"
     mock_clean.return_value = "clean lyrics"
 
-    assert Scraper.get_lyrics("some_url") == "clean lyrics"
+    assert ScraperService.get_lyrics("some_url") == "clean lyrics"
     mock_scrape.assert_called_with("some_url")
     mock_clean.assert_called_with("raw lyrics")
 
@@ -21,7 +21,7 @@ def test_scraper_get_lyrics(mock_scrape, mock_clean):
 def test_scraper_scrape(mock_requests, mock_bs):
     mock_requests.get.return_value.content = b"content"
 
-    Scraper.scrape("some_url")
+    ScraperService.scrape("some_url")
 
     mock_bs.assert_called_with(b"content", "html.parser")
 
@@ -35,5 +35,4 @@ def test_scraper_scrape(mock_requests, mock_bs):
     ("basic", "basic")
 ])
 def test_scraper_clean(lyric, expected):
-    assert Scraper.clean(lyric) == expected
-
+    assert ScraperService.clean(lyric) == expected
