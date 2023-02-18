@@ -158,7 +158,7 @@ class TestGeniusService:
         mock_requests.get.return_value = ping_is_true
         mock_get_song.return_value = {"song": {"album": {"name": "some album"}}}
         mock_scraper.return_value = "some lyrics"
-        mock_stats.return_value = {"stats": "some stats"}
+        mock_stats.return_value = {"stats": "some stats", "stats 2": "some other stats"}
         mock_date.return_value = "some date"
         song_response = {
             "primary_artist": {"name": "some artist"},
@@ -172,7 +172,8 @@ class TestGeniusService:
             "title": "some title",
             "album": "some album",
             "date": "some date",
-            "lyrics": "some lyrics"
+            "stats": "some stats",
+            "stats 2": "some other stats"
         }
         
         test_instance = GeniusService("url", "apikey")

@@ -121,7 +121,7 @@ class GeniusService:
     def _get_song_data(self, song_response: dict) -> dict:
         song = self._get_song(song_response["id"])["song"]
         lyrics = ScraperService.get_lyrics(song_response["url"])
-        # stat_summary = self._lyrics_stat_summary(lyrics)
+        stat_summary = self._lyrics_stat_summary(lyrics)
         album_data = song.get("album")
         if album_data is None:
             album = None
@@ -132,13 +132,13 @@ class GeniusService:
         if type(date_components) is not dict:
             date_components = {}
 
-        return {
+        metadata = {
             "name": song_response["primary_artist"]["name"],
             "title": song_response["title"],
-            "lyrics": lyrics,
             "album": album,
             "date": self._parse_date_components(date_components)
         }
+        return {**metadata, **stat_summary}
     
     def _title_filter(self, title: str) -> bool:
         title = title.lower()
