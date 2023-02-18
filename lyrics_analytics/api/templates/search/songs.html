@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
-{% block title %}Artists Data{% endblock %}
+{% block title %} Songs {% endblock %}
 
 {% block content %}
 <div class="text-center">
   <h2>Artist Data: {{ artist_name }}</h2>
   {% for data in artist_data %}
   <div>
-    <a class="btn btn-outline-warning" href="{{ data['lyrics_url'] }}">
-      {{ data['title'] }}
+    <a class="btn btn-outline-warning" href="">
+      {{ data }}
     </a>
   </div>
   <br>
