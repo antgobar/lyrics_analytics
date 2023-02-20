@@ -47,7 +47,7 @@ class GeniusService:
         response = self._search_artist(artist_name)
         if response is None:
             logging.info("Not found:", artist_name)
-            return
+            return []
 
         artists_found = []
         for result in response["hits"]:

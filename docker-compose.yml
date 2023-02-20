@@ -9,6 +9,7 @@ services:
       - FLASK_DEBUG=1
       - RESULT_BACKEND=redis://redis:6379
       - BROKER_URL=amqp://guest:guest@rabbit:5672/
+      - CACHE_HOST=redis
     ports:
       - "5000:5000"
     volumes:

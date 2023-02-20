@@ -6,7 +6,7 @@
 <div class="container mt-3 text-center">
   <div>
     <a href="{{ url_for('search.index') }}">
-      <img src="{{url_for('static', filename='images/logo-2.png')}}" class="rounded img-fluid" alt="Responsive image" width="400">
+      <img src="{{url_for('static', filename='images/logo.png')}}" class="rounded img-fluid" alt="Responsive image" width="400">
     </a>
   </div>
   <form method="post" class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center" onsubmit="submitForm()">
@@ -18,6 +18,19 @@
       <button id="search-button" type="submit" class="btn btn-warning text-danger">Search</button>
     </div>
   </form>
+</div>
+<div class="text-center mt-4">
+  {% if not_found %}
+    <h3>No artists found for {{ name }}</h3>
+  {% endif %}
+  {% for artist in artists %}
+  <div>
+      <a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-outline-warning">
+        {{ artist['name'] }}
+      </a>
+  </div>
+  <br>
+  {% endfor %}
 </div>
 <script src="{{ url_for('static', filename='js/search-button.js') }}"></script>
 {% endblock %}
