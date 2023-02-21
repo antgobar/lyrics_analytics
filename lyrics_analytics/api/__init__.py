@@ -3,6 +3,8 @@ import os
 from flask import Flask
 
 from lyrics_analytics.backend.worker import make_celery
+from lyrics_analytics.extensions import db
+from lyrics_analytics import config
 
 
 def create_app(test_config=None):
@@ -17,19 +19,16 @@ def create_app(test_config=None):
         "result_backend": os.environ.get("RESULT_BACKEND", "redis://localhost:6379")
     }
 
-    @flaskapp.route("/test")
-    def in_test():
-        return {"lyrics_analytics: test_endpoint"}, 200
-
     celeryapp = make_celery(flaskapp)
     celeryapp.set_default()
+
+    db.init(app)
 
     from lyrics_analytics.api import search, auth, reports
 
     flaskapp.register_blueprint(search.bp)
     flaskapp.register_blueprint(auth.bp)
     flaskapp.register_blueprint(reports.bp)
-
 
     flaskapp.add_url_rule("/", endpoint="index")
 
