@@ -7,4 +7,3 @@ Reading:
   * https://github.com/angeuwase/production-flask-app-setup/tree/main/app/auth
 * [postgres](https://github.com/adyouri/large-flask-app-template)
 * [deploy](https://www.youtube.com/watch?v=z5XiVh6v4uI)
-

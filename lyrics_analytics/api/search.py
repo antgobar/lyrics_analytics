@@ -10,7 +10,8 @@ from lyrics_analytics.backend.cache import CacheService
 from lyrics_analytics.backend.tasks import find_artists, get_artist_songs
 
 
-bp = Blueprint("search", __name__)
+bp = Blueprint(os.path.basename(__file__).split(".")[0], __name__)
+
 cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 
 

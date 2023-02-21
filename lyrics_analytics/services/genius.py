@@ -13,7 +13,7 @@ class GeniusService:
     def __init__(self, _base_url: str, access_token: str, healthcheck=True) -> None:
         self._base_url = _base_url
         if access_token is None:
-            access_token = dotenv_values(".env.secrets").get("GENIUS_CLIENT_ACCESS_TOKEN")
+            access_token = dotenv_values(".env").get("GENIUS_CLIENT_ACCESS_TOKEN")
         self._base_params = {"access_token": access_token}
         self.titles = []
         if healthcheck:

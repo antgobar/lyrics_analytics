@@ -11,20 +11,11 @@ def create_app(test_config=None):
         SECRET_KEY="dev",
         DATABASE=os.path.join(flaskapp.instance_path, "lyrics_analytics.sqlite"),
     )
+
     flaskapp.config["CELERY_CONFIG"] = {
         "broker_url": os.environ.get("BROKER_URL", "amqp://localhost:5672"),
         "result_backend": os.environ.get("RESULT_BACKEND", "redis://localhost:6379")
     }
-
-    if test_config is None:
-        flaskapp.config.from_pyfile("config.py", silent=True)
-    else:
-        flaskapp.config.from_mapping(test_config)
-
-    try:
-        os.makedirs(flaskapp.instance_path)
-    except OSError:
-        pass
 
     @flaskapp.route("/test")
     def in_test():
@@ -33,10 +24,14 @@ def create_app(test_config=None):
     celeryapp = make_celery(flaskapp)
     celeryapp.set_default()
 
-    from . import search
+    from lyrics_analytics.api import search, auth, reports
 
     flaskapp.register_blueprint(search.bp)
-    flaskapp.add_url_rule("/", endpoint='index')
+    flaskapp.register_blueprint(auth.bp)
+    flaskapp.register_blueprint(reports.bp)
+
+
+    flaskapp.add_url_rule("/", endpoint="index")
 
     return flaskapp, celeryapp
 
