@@ -21,14 +21,6 @@ def index():
 
     return redirect(url_for("search.artists", name=request.form["artist-name"], use_cache=True))
 
-    if cache.is_stored("searched_artists", name):
-        artists_found = cache.get_value("searched_artists", name)
-
-    else:
-        return redirect(url_for("search.artists", name=name))
-
-    return render_template("search/index.html", artists=artists_found, name=name)
-
 
 @bp.route("/artists", methods=("GET", "POST"))
 def artists():
@@ -59,9 +51,17 @@ def artists():
 def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
+    process_key = f"{name.lower()}__{artist_id}"
+
+    if cache.is_stored("getting_lyrics", process_key):
+        flash(f"Already fetching lyric data for {name}")
+        task_id = cache.get_value("getting_lyrics", process_key)
+        return redirect(url_for("search.songs", task_id=task_id, name=name))
+
     task = get_artist_songs.delay(artist_id)
-    flash(f"Fetching lyric data for {name} - check reports later")
-    return redirect(url_for("search.index", task_id=task.id, name=name))
+    cache.update_store("getting_lyrics", process_key, task.id)
+    flash(f"Fetching lyric data for {name}, check reports later :)")
+    return redirect(url_for("search.songs", task_id=task.id, name=name))
 
 
 @bp.route("/artist/<name>")

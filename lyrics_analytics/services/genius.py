@@ -46,7 +46,7 @@ class GeniusService:
     def find_artists(self, artist_name: str) -> list[dict] or None:
         response = self._search_artist(artist_name)
         if response is None:
-            logging.info("Not found:", artist_name)
+            logging.info(f"Not found: {artist_name}")
             return []
 
         artists_found = []

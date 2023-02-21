@@ -30,15 +30,15 @@ def create_app(test_config=None):
     def in_test():
         return {"lyrics_analytics: test_endpoint"}, 200
 
-    celery = make_celery(flaskapp)
-    celery.set_default()
+    celeryapp = make_celery(flaskapp)
+    celeryapp.set_default()
 
     from . import search
 
     flaskapp.register_blueprint(search.bp)
     flaskapp.add_url_rule("/", endpoint='index')
 
-    return flaskapp, celery
+    return flaskapp, celeryapp
 
 
 app, celery = create_app()
