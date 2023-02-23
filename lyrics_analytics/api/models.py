@@ -19,7 +19,7 @@ class LyricsStats(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=False)
     title = db.Column(db.String(50), nullable=False)
-    album = db.Column(db.String(50), nullable=False)
+    album = db.Column(db.String(50), nullable=True)
     date = db.Column(db.Date(), nullable=False)
     count = db.Column(db.Integer(), nullable=False)
     unique_count = db.Column(db.Integer(), nullable=False)

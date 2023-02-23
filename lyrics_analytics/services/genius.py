@@ -91,7 +91,7 @@ class GeniusService:
 
                 song_data = self._get_song_data(song)
                 songs.append(song_data)
-                    
+
             if response["next_page"] is None:
                 break
             

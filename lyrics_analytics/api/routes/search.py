@@ -10,7 +10,8 @@ from lyrics_analytics.backend.cache import CacheService
 from lyrics_analytics.backend.tasks import find_artists, get_artist_songs
 
 
-bp = Blueprint(os.path.basename(__file__).split(".")[0], __name__)
+BASE = os.path.basename(__file__).split(".")[0]
+bp = Blueprint(BASE, __name__)
 
 cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 
@@ -52,17 +53,18 @@ def artists():
 def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
-    process_key = f"{name.lower()}__{artist_id}"
 
+    process_key = f"{name.lower()}__{artist_id}"
     if cache.is_stored("getting_lyrics", process_key):
         flash(f"Already fetching lyric data for {name}")
         task_id = cache.get_value("getting_lyrics", process_key)
-        # return redirect(url_for("search.songs", task_id=task_id, name=name))
+        return render_template("search/index.html")
 
     task = get_artist_songs.delay(artist_id)
     cache.update_store("getting_lyrics", process_key, task.id)
+
     flash(f"Fetching lyric data for {name}, check reports later :)")
-    return redirect(url_for("search.songs", task_id=task.id, name=name))
+    return render_template("search/index.html")
 
 
 @bp.route("/artist/<name>")
