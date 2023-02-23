@@ -19,8 +19,8 @@ cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 def index():
     if request.method == "GET":
         return render_template("search/index.html")
-
-    return redirect(url_for("search.artists", name=request.form["artist-name"], use_cache=True))
+    name = request.form["artist-name"]
+    return redirect(url_for("search.artists", name=name, use_cache=True))
 
 
 @bp.route("/artists", methods=("GET", "POST"))
@@ -57,7 +57,7 @@ def artist():
     if cache.is_stored("getting_lyrics", process_key):
         flash(f"Already fetching lyric data for {name}")
         task_id = cache.get_value("getting_lyrics", process_key)
-        return redirect(url_for("search.songs", task_id=task_id, name=name))
+        # return redirect(url_for("search.songs", task_id=task_id, name=name))
 
     task = get_artist_songs.delay(artist_id)
     cache.update_store("getting_lyrics", process_key, task.id)

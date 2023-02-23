@@ -108,7 +108,7 @@ class GeniusService:
         return {
             "count": count,
             "unique_count": unique_count,
-            "unique_score": unique_count / count
+            "uniqueness_score": unique_count / count
         }
 
     @staticmethod

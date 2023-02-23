@@ -92,7 +92,7 @@ class TestGeniusService:
                 {"id": 3, "name": 'artist_A_and_B'}
             ]
         ),
-        (None, None)
+        (None, [])
     ])
     def test_find_artists(
         self, 
