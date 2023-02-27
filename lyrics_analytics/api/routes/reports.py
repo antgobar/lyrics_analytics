@@ -13,16 +13,16 @@ bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
 @bp.route("/")
 def summary():
     artist_name = "Artist"
-    lyrics_count = "Average lyrics per song"
-    unique_count = "Average distinct lyrics per song"
-    score = "Distinctness score"
-    total_songs = "total songs"
+    lyrics_count = "Avg lyrics/song"
+    distinct_count = "Avg distinct lyrics/song"
+    distinct_score = "Distinctness"
+    total_songs = "Total songs"
     report_data = [
         {
             artist_name: stat.name,
             lyrics_count: stat.count,
-            unique_count: stat.unique_count,
-            score: stat.uniqueness_score
+            distinct_count: stat.distinct_count,
+            distinct_score: stat.distinct_score
         } for stat in LyricsStats.query.all()
     ]
     df = pd.DataFrame(report_data)
@@ -32,7 +32,7 @@ def summary():
     summary_df = pd.merge(grouped, song_counts, on=artist_name)
     summary_df = summary_df.round({
         lyrics_count: 0,
-        unique_count: 0,
-        score: 3
+        distinct_count: 0,
+        distinct_score: 3
     })
     return render_template(f"{BASE}/index.html", summary_reports=summary_df.to_dict("records"))

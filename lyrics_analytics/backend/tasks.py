@@ -3,10 +3,12 @@ import os
 from celery import shared_task
 from celery.contrib.abortable import AbortableTask
 
+from lyrics_analytics.config import Config
 from lyrics_analytics.services.genius import GeniusService
 from lyrics_analytics.backend.db import df_writer
 
-genius = GeniusService("http://api.genius.com", os.getenv("GENIUS_CLIENT_ACCESS_TOKEN"))
+
+genius = GeniusService("http://api.genius.com", Config.GENIUS_CLIENT_ACCESS_TOKEN)
 
 
 @shared_task(bind=True, base=AbortableTask)

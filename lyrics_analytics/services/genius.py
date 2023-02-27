@@ -107,8 +107,8 @@ class GeniusService:
         unique_count = len(set(lyrics))
         return {
             "count": count,
-            "unique_count": unique_count,
-            "uniqueness_score": unique_count / count
+            "distinct_count": unique_count,
+            "distinct_score": round(unique_count / count, 3)
         }
 
     @staticmethod

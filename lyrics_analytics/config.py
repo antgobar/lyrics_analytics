@@ -20,6 +20,7 @@ class Config:
     MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
     MONGO_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME")
     MONGO_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
+    GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
 
 
 class DevelopmentConfig(Config):

@@ -22,8 +22,8 @@ class LyricsStats(db.Model):
     album = db.Column(db.String(50), nullable=True)
     date = db.Column(db.Date(), nullable=False)
     count = db.Column(db.Integer(), nullable=False)
-    unique_count = db.Column(db.Integer(), nullable=False)
-    uniqueness_score = db.Column(db.Float(precision=3), nullable=False)
+    distinct_count = db.Column(db.Integer(), nullable=False)
+    distinct_score = db.Column(db.Float(precision=3), nullable=False)
 
     def __repr__(self):
         return f"<LyricsStats {self.name}, {self.title}, {self.count}>"
