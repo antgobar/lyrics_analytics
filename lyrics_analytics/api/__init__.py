@@ -1,44 +1,39 @@
-import os
-
 from flask import Flask
+import pandas as pd
 
 from lyrics_analytics.backend.worker import make_celery
+from lyrics_analytics.api.extensions import db
+from lyrics_analytics import config
+from lyrics_analytics.api.models import LyricsStats
 
 
 def create_app(test_config=None):
     flaskapp = Flask(__name__, instance_relative_config=True)
-    flaskapp.config.from_mapping(
-        SECRET_KEY="dev",
-        DATABASE=os.path.join(flaskapp.instance_path, "lyrics_analytics.sqlite"),
-    )
-    flaskapp.config["CELERY_CONFIG"] = {
-        "broker_url": os.environ.get("BROKER_URL", "amqp://localhost:5672"),
-        "result_backend": os.environ.get("RESULT_BACKEND", "redis://localhost:6379")
-    }
+    flaskapp.config.from_object(config.DevelopmentConfig)
 
-    if test_config is None:
-        flaskapp.config.from_pyfile("config.py", silent=True)
-    else:
-        flaskapp.config.from_mapping(test_config)
+    celeryapp = make_celery(flaskapp)
+    celeryapp.set_default()
 
-    try:
-        os.makedirs(flaskapp.instance_path)
-    except OSError:
-        pass
+    db.init_app(flaskapp)
 
-    @flaskapp.route("/test")
-    def in_test():
-        return {"lyrics_analytics: test_endpoint"}, 200
+    @flaskapp.context_processor
+    def inject_data():
+        count = db.session.query(db.func.count(db.func.distinct(LyricsStats.name))).scalar()
+        return dict(reports_ready=count)
 
-    celery = make_celery(flaskapp)
-    celery.set_default()
-
-    from . import search
+    from lyrics_analytics.api.routes import reports
+    from lyrics_analytics.api.routes import search
+    from lyrics_analytics.api.routes import admin
+    from lyrics_analytics.api.routes import auth
 
     flaskapp.register_blueprint(search.bp)
-    flaskapp.add_url_rule("/", endpoint='index')
+    flaskapp.register_blueprint(auth.bp)
+    flaskapp.register_blueprint(reports.bp)
+    flaskapp.register_blueprint(admin.bp)
 
-    return flaskapp, celery
+    flaskapp.add_url_rule("/", endpoint="index")
+
+    return flaskapp, celeryapp
 
 
 app, celery = create_app()

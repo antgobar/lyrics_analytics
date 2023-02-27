@@ -13,7 +13,7 @@ class GeniusService:
     def __init__(self, _base_url: str, access_token: str, healthcheck=True) -> None:
         self._base_url = _base_url
         if access_token is None:
-            access_token = dotenv_values(".env.secrets").get("GENIUS_CLIENT_ACCESS_TOKEN")
+            access_token = dotenv_values(".env").get("GENIUS_CLIENT_ACCESS_TOKEN")
         self._base_params = {"access_token": access_token}
         self.titles = []
         if healthcheck:
@@ -46,8 +46,8 @@ class GeniusService:
     def find_artists(self, artist_name: str) -> list[dict] or None:
         response = self._search_artist(artist_name)
         if response is None:
-            logging.info("Not found:", artist_name)
-            return
+            logging.info(f"Not found: {artist_name}")
+            return []
 
         artists_found = []
         for result in response["hits"]:
@@ -91,7 +91,7 @@ class GeniusService:
 
                 song_data = self._get_song_data(song)
                 songs.append(song_data)
-                    
+
             if response["next_page"] is None:
                 break
             
@@ -107,8 +107,8 @@ class GeniusService:
         unique_count = len(set(lyrics))
         return {
             "count": count,
-            "unique_count": unique_count,
-            "unique_score": unique_count / count
+            "distinct_count": unique_count,
+            "distinct_score": round(unique_count / count, 3)
         }
 
     @staticmethod
