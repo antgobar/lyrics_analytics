@@ -18,6 +18,7 @@ celery = "^5.2.7"
 flask-sqlalchemy = "^3.0.3"
 pandas = "^1.5.3"
 pymongo = "^4.3.3"
+matplotlib = "^3.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"

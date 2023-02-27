@@ -15,8 +15,12 @@
     <tbody>
         {% for summary in summary_reports %}
         <tr>
-            {% for value in summary.values() %}
-            <td>{{ value }}</td>
+            {% for key, value in summary.items() %}
+                {% if key == 'Artist' %}
+                    <td><a href="{{ url_for('reports.artist', artist_id=value) }}" class="btn btn-warning">{{ value }}</a></td>
+                {% else %}
+                    <td>{{ value }}</td>
+                {% endif %}
             {% endfor %}
         </tr>
         {% endfor %}
