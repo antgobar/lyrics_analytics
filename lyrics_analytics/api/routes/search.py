@@ -62,7 +62,6 @@ def artist():
         flash(f"Already fetched or fetching {name} lyrics data - check reports")
         return render_template("search/index.html")
 
-
     task = get_artist_songs.delay(artist_id)
     cache.update_store("getting_lyrics", process_key, task.id)
 
