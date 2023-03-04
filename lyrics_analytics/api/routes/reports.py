@@ -1,4 +1,4 @@
-import base64
+from base64 import b64encode
 import os
 from io import BytesIO
 
@@ -10,7 +10,6 @@ import seaborn as sns
 
 from lyrics_analytics.api.models import User, LyricsStats
 
-buffer = BytesIO()
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
@@ -40,7 +39,7 @@ def summary():
     return render_template(f"{BASE}/index.html", summary_reports=summary_df.to_dict("records"))
 
 
-@bp.route("/artist/<name>")
+@bp.route("/<name>")
 def artist(name):
     report_data = [
         {
@@ -51,11 +50,24 @@ def artist(name):
         } for stat in LyricsStats.query.filter_by(name=name).all()
     ]
     df = pd.DataFrame(report_data)
-    fig = sns.histplot(data=df, x="lyrics_count", kde=True)
-    plt.title(f"{name}")
+    count_fig = sns.histplot(data=df, x="lyrics_count", kde=True)
+    count_plot = create_plot_data(count_fig, name, "Lyrics count")
 
-    buffer.truncate(0)
-    buffer.seek(0)
-    fig.figure.savefig(buffer, format='png')
-    data = base64.b64encode(buffer.getbuffer()).decode("ascii")
-    return render_template(f"{BASE}/report.html", plot_data=data)
+    distinct_fig = sns.histplot(data=df, x="distinct_count", kde=True)
+    distinct_plot = create_plot_data(distinct_fig, name, "Unique count")
+
+    return render_template(
+        f"{BASE}/plots.html",
+        count_plot=count_plot,
+        distinct_plot=distinct_plot
+    )
+
+
+def create_plot_data(figure, title, xlabel):
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel("Frequency")
+    buffer = BytesIO()
+    figure.figure.savefig(buffer, format='png')
+    plt.clf()
+    return b64encode(buffer.getbuffer()).decode("ascii")

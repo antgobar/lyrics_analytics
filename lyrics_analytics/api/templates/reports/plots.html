@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %} Reports {% endblock %}
+
+{% block content %}
+<img src='data:image/png;base64,{{ count_plot }}' class="img-fluid" alt="Responsive image"/>
+<img src='data:image/png;base64,{{ distinct_plot }}' class="img-fluid" alt="Responsive image"/>
+
+{% endblock %}

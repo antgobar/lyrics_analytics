@@ -8,7 +8,7 @@
     <thead>
         <tr>
             <th>Artist</th>
-            <th>Average lyrics/song</th>
+            <th>Average lyrics per song</th>
             <th>Songs found</th>
         </tr>
     </thead>
@@ -23,17 +23,17 @@
                 </p>
                 <div class="collapse" id="collapseExample{{ loop.index }}">
                     <div class="card card-body">
-                        <table class="table">
+                        <table>
                             <thead>
                                 <tr>
-                                    <th>Disinct lyrics/song</th>
-                                    <th>Disntinctiveness score</th>
+                                    <th>Unique lyrics per song</th>
+                                    <th>Uniqueness score</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{ summary["distinct_count"] }}</td>
-                                    <td>{{ summary["score"] }}</td>
+                                    <td>{{ summary["distinct_count"] | int }}</td>
+                                    <td>{{ summary["score"] | round(2) }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -43,7 +43,7 @@
                     </div>
                 </div>
             </td>
-            <td>{{ summary["average_count"] }}</td>
+            <td>{{ summary["average_count"] | int }}</td>
             <td>{{ summary["total"] }}</td>
         </tr>
         {% endfor %}
