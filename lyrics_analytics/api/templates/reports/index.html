@@ -3,7 +3,7 @@
 {% block title %} Reports {% endblock %}
 
 {% block content %}
-<h2>Average metrics</h2>
+<h2 class="m-2 mt-3 mb-3">Average metrics</h2>
 <table class="table">
     <thead>
         <tr>
@@ -25,7 +25,7 @@
                     <div class="card card-body">
                         <ul class="list-group">
                             <li class="list-group-item">Unique lyrics per song: {{ summary["distinct_count"] | int }}</li>
-                            <li class="list-group-item">niqueness score: {{ summary["score"] | round(2) }}</li>
+                            <li class="list-group-item">Uniqueness score: {{ summary["score"] | round(2) }}</li>
                         </ul>
                         <div class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center">
                             <a class="btn btn-warning" href="{{ url_for('reports.artist', name=summary['name']) }}">
