@@ -23,23 +23,15 @@
                 </p>
                 <div class="collapse" id="collapseExample{{ loop.index }}">
                     <div class="card card-body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Unique lyrics per song</th>
-                                    <th>Uniqueness score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ summary["distinct_count"] | int }}</td>
-                                    <td>{{ summary["score"] | round(2) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <a class="btn btn-warning" href="{{ url_for('reports.artist', name=summary['name']) }}">
-                            More
-                        </a>
+                        <ul class="list-group">
+                            <li class="list-group-item">Unique lyrics per song: {{ summary["distinct_count"] | int }}</li>
+                            <li class="list-group-item">niqueness score: {{ summary["score"] | round(2) }}</li>
+                        </ul>
+                        <div class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center">
+                            <a class="btn btn-warning" href="{{ url_for('reports.artist', name=summary['name']) }}">
+                                Visualise
+                            </a>
+                        </div>
                     </div>
                 </div>
             </td>

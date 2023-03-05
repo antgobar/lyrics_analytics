@@ -3,7 +3,11 @@
 {% block title %} Reports {% endblock %}
 
 {% block content %}
-<img src='data:image/png;base64,{{ count_plot }}' class="img-fluid" alt="Responsive image"/>
-<img src='data:image/png;base64,{{ distinct_plot }}' class="img-fluid" alt="Responsive image"/>
-
+<div class="container mb-5">
+    {% for plot in plots %}
+    <div class="p-2">
+        <img src='data:image/png;base64,{{ plot }}' class="img-fluid" alt="Responsive image"/>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

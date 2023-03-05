@@ -58,8 +58,7 @@ def artist(name):
 
     return render_template(
         f"{BASE}/plots.html",
-        count_plot=count_plot,
-        distinct_plot=distinct_plot
+        plots=[count_plot, distinct_plot],
     )
 
 
