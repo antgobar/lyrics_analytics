@@ -35,7 +35,7 @@
           {% for artist in artists %}
           <tr>
               <td>{{ artist.name }}</td>
-              <td><a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-info">Get Data</a></td>
+              <td><a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-warning">Get Data</a></td>
           </tr>
           {% endfor %}
       </tbody>

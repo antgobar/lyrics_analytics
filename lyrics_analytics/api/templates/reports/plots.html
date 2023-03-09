@@ -1,13 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %} Reports {% endblock %}
+{% block title %} {{ artist }} Reports {% endblock %}
 
 {% block content %}
-<div class="container mb-5">
+<h2 class="m-2 mt-3 mb-3">{{ artist }} Reports</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Metric</th>
+            <th>Title</th>
+            <th>Album</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in basic_reports %}
+        <tr>
+            <td>{{ report["metric"] }}</td>
+            <td>{{ report["title"] }}</td>
+            <td>{{ report["album"] }}</td>
+            <td>{{ report["value"] }}</td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<br>
+<div class="container">
+    <div class="row mb-1">
     {% for plot in plots %}
-    <div class="p-2">
-        <img src='data:image/png;base64,{{ plot }}' class="img-fluid" alt="Responsive image"/>
-    </div>
+        <div class="col-md-6 p-1">
+            <img src='data:image/png;base64,{{ plot }}' class="img-fluid" alt="Responsive image"/>
+        </div>
     {% endfor %}
+    </div>
 </div>
 {% endblock %}
