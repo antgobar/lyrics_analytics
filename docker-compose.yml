@@ -11,6 +11,9 @@ services:
       - RESULT_BACKEND=redis://redis:6379
       - BROKER_URL=amqp://guest:guest@rabbit:5672/
       - CACHE_HOST=redis
+      - MONGO_HOST=mongo
+      - MONGO_INITDB_ROOT_USERNAME=guest
+      - MONGO_INITDB_ROOT_PASSWORD=guest
     ports:
       - "5000:5000"
     volumes:
@@ -18,7 +21,7 @@ services:
     depends_on:
       - worker
       - redis
-#      - mongo
+      - mongo
     restart: always
 
   worker:
@@ -34,7 +37,7 @@ services:
     depends_on:
       - redis
       - rabbit
-#      - mongo
+      - mongo
 
   redis:
     image: redis:6-alpine
@@ -56,19 +59,19 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq
     restart: always
 
-#  mongo:
-#      image: mongo
-#      restart: always
-#      environment:
-#        MONGO_HOST: mongo
-#        MONGO_INITDB_ROOT_USERNAME: guest
-#        MONGO_INITDB_ROOT_PASSWORD: guest
-#      ports:
-#        - "27017:27017"
-#      volumes:
-#        - mongo-data:/var/lib/mongo
+  mongo:
+      image: mongo
+      restart: always
+      environment:
+        - MONGO_HOST=mongo
+        - MONGO_INITDB_ROOT_USERNAME=guest
+        - MONGO_INITDB_ROOT_PASSWORD=guest
+      ports:
+        - "27017:27017"
+      volumes:
+        - mongo-data:/var/lib/mongo
 
 volumes:
   redis-data:
   rabbitmq-data:
-#  mongo-data:
+  mongo-data:

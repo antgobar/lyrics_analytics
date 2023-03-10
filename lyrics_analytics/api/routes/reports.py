@@ -5,10 +5,9 @@ from io import BytesIO
 from flask import Blueprint, render_template
 import pandas as pd
 from matplotlib import pyplot as plt
-from matplotlib.figure import Figure
 import seaborn as sns
 
-from lyrics_analytics.api.models import User, LyricsStats
+from lyrics_analytics.backend.db import mongo_collection
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -20,6 +19,9 @@ sns.color_palette("Set2")
 
 @bp.route("/")
 def summary():
+    artists_collection = mongo_collection("lyrics_analytics", "artists")
+    artists = list(artists_collection.find())
+    return artists
     artist_name = "name"
     lyrics_count = "average_count"
     distinct_count = "distinct_count"
@@ -83,7 +85,7 @@ def basic_metric_min_max(df, max_name, min_name, metric_col, base_cols=("title",
     min_df["metric"] = min_name
     max_df = max_df.rename(columns={metric_col: "value"})
     min_df = min_df.rename(columns={metric_col: "value"})
-    return pd.concat([max_df.rename(columns={metric_col: "value"}), min_df.rename(columns={metric_col: "value"})])
+    return pd.concat([max_df, min_df])
 
 
 def create_plot_data(figure, title, xlabel):

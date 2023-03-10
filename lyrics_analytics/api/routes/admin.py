@@ -3,7 +3,7 @@ import os
 from flask import Blueprint
 import pandas as pd
 
-from lyrics_analytics.api import db
+# from lyrics_analytics.api import db
 
 BASE = os.path.basename(__file__).split(".")[0]
 

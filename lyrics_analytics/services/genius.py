@@ -16,6 +16,7 @@ class GeniusService:
             access_token = dotenv_values(".env").get("GENIUS_CLIENT_ACCESS_TOKEN")
         self._base_params = {"access_token": access_token}
         self.titles = []
+        self.artist_data = None
         if healthcheck:
             self.ping()
 
@@ -77,8 +78,15 @@ class GeniusService:
         url = f"{self._base_url}/songs/{song_id}"
         return requests.get(url, params=self._base_params)
 
+    def get_artist_data(self, artist_id: int):
+        self.artist_data = self._get_artist(artist_id)["artist"]
+        return self.artist_data
+
     def get_artist_songs(self, artist_id: int) -> list:
-        artist_name = self._get_artist(artist_id)["artist"]["name"].lower()
+        if self.artist_data is None:
+            artist_name = self.get_artist_data(artist_id)["name"].lower()
+        else:
+            artist_name = self.artist_data["name"].lower()
         page_no = 1
         songs = []
         while True:
@@ -134,6 +142,8 @@ class GeniusService:
 
         metadata = {
             "name": song_response["primary_artist"]["name"],
+            "genius_artist_id": song_response["primary_artist"]["id"],
+            "genius_song_id": song_response["id"],
             "title": song_response["title"],
             "album": album,
             "date": self._parse_date_components(date_components)

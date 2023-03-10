@@ -1,10 +1,9 @@
 from flask import Flask
 import pandas as pd
+from pymongo import MongoClient
 
 from lyrics_analytics.backend.worker import make_celery
-from lyrics_analytics.api.extensions import db
 from lyrics_analytics import config
-from lyrics_analytics.api.models import LyricsStats
 
 
 def create_app(test_config=None):
@@ -14,22 +13,26 @@ def create_app(test_config=None):
     celeryapp = make_celery(flaskapp)
     celeryapp.set_default()
 
-    db.init_app(flaskapp)
+    mongo = MongoClient(
+        f"mongodb://{config.Config.MONGO_USERNAME}:{config.Config.MONGO_PASSWORD}@{config.Config.MONGO_HOST}:27017/"
+    )
 
     @flaskapp.context_processor
     def inject_data():
-        count = db.session.query(db.func.count(db.func.distinct(LyricsStats.name))).scalar()
+        db = mongo["lyrics_analytics"]
+        artists_collection = db["artists"]
+        count = artists_collection.count_documents({"ready": True})
         return dict(reports_ready=count)
 
     from lyrics_analytics.api.routes import reports
     from lyrics_analytics.api.routes import search
-    from lyrics_analytics.api.routes import admin
+    # from lyrics_analytics.api.routes import admin
     from lyrics_analytics.api.routes import auth
 
     flaskapp.register_blueprint(search.bp)
     flaskapp.register_blueprint(auth.bp)
     flaskapp.register_blueprint(reports.bp)
-    flaskapp.register_blueprint(admin.bp)
+    # flaskapp.register_blueprint(admin.bp)
 
     flaskapp.add_url_rule("/", endpoint="index")
 

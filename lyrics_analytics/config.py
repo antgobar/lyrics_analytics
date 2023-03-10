@@ -17,7 +17,7 @@ class Config:
         "result_backend": os.environ.get("RESULT_BACKEND", "redis://localhost:6379")
     }
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(basedir, "lyrics-analytics.db"))
-    MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
+    MONGO_HOST = os.getenv("MONGO_HOST")
     MONGO_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME")
     MONGO_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
