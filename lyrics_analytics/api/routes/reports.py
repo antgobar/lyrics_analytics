@@ -20,7 +20,7 @@ sns.color_palette("Set2")
 @bp.route("/")
 def summary():
     artists_collection = mongo_collection("lyrics_analytics", "artists")
-    artists = list(artists_collection.find())
+    artists = str(list(artists_collection.find({})))
     return artists
     artist_name = "name"
     lyrics_count = "average_count"

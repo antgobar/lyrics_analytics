@@ -21,7 +21,7 @@ def create_app(test_config=None):
     def inject_data():
         db = mongo["lyrics_analytics"]
         artists_collection = db["artists"]
-        count = artists_collection.count_documents({"ready": True})
+        count = artists_collection.count_documents({})
         return dict(reports_ready=count)
 
     from lyrics_analytics.api.routes import reports
