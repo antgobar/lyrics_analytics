@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from lyrics_analytics.backend.db import mongo_collection
+from lyrics_analytics.backend import db
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -19,60 +19,48 @@ sns.color_palette("Set2")
 
 @bp.route("/")
 def summary():
-    artists_collection = mongo_collection("lyrics_analytics", "artists")
-    artists = str(list(artists_collection.find({})))
-    return artists
-    artist_name = "name"
-    lyrics_count = "average_count"
-    distinct_count = "distinct_count"
-    distinct_score = "score"
-    report_data = [
+    artists_collection = db.get_collection("lyrics_analytics", "song_stats")
+    pipeline = [
         {
-            artist_name: stat.name,
-            lyrics_count: stat.count,
-            distinct_count: stat.distinct_count,
-            distinct_score: stat.distinct_score
-        } for stat in LyricsStats.query.all()
+            "$group": {
+                "_id": "$genius_artist_id",
+                "name": {"$first": "$name"},
+                "avg_lyrics": {"$avg": "$lyrics_count"},
+                "song_count": {"$sum": 1},
+                "max_count": {"$max": "$lyrics_count"},
+                "min_count": {"$min": "$lyrics_count"}
+            }
+        },
     ]
-    total_songs = "total"
 
-    df = pd.DataFrame(report_data)
-    grouped = df.groupby([artist_name], as_index=False).mean()
-    song_counts = df.groupby([artist_name], as_index=False).size()
-    song_counts = song_counts.rename(columns={"size": total_songs})
-    summary_df = pd.merge(grouped, song_counts, on=artist_name)
-    return render_template(f"{BASE}/index.html", summary_reports=summary_df.to_dict("records"))
+    artists = list(artists_collection.aggregate(pipeline))
+    return render_template(f"{BASE}/index.html", summary_reports=db.parse_mongo(artists))
 
 
-@bp.route("/<name>")
-def artist(name):
-    df = pd.DataFrame([
-        {
-            "name": stat.name,
-            "title": stat.title,
-            "album": stat.album,
-            "date": stat.date,
-            "lyrics_count": stat.count,
-            "distinct_count": stat.distinct_count,
-            "score": stat.distinct_score
-        } for stat in LyricsStats.query.filter_by(name=name).all()
-    ])
+@bp.route("/<artist_id>")
+def artist(artist_id):
+    song_stats_collection = db.get_collection("lyrics_analytics", "song_stats")
+    artists_collection = db.get_collection("lyrics_analytics", "artists")
 
-    basic_reports = pd.concat([
-        basic_metric_min_max(df, "Longest song", "Shortest song", "lyrics_count"),
-        basic_metric_min_max(df, "Most unique", "Least unique", "distinct_count"),
-        basic_metric_min_max(df, "High score", "Low score", "score"),
-    ])
+    songs = song_stats_collection.find({"genius_artist_id": int(artist_id)})
+    df = pd.DataFrame(db.parse_mongo(list(songs)))
+
+    # basic_reports = pd.concat([
+    #     basic_metric_min_max(df, "Longest song", "Shortest song", "lyrics_count"),
+    #     basic_metric_min_max(df, "Most unique", "Least unique", "distinct_count"),
+    #     basic_metric_min_max(df, "High score", "Low score", "score"),
+    # ])
+
+    name = artists_collection.find_one({"genius_artist_id": int(artist_id)})["name"]
 
     count_fig = sns.histplot(data=df, x="lyrics_count", kde=True)
-    count_plot = create_plot_data(count_fig, name, "Lyrics count")
+    count_plot = create_plot_data(count_fig, "Lyrics count")
     distinct_fig = sns.histplot(data=df, x="distinct_count", kde=True)
-    distinct_plot = create_plot_data(distinct_fig, name, "Unique count")
+    distinct_plot = create_plot_data(distinct_fig, "Unique count")
 
     return render_template(
         f"{BASE}/plots.html",
         artist=name,
-        basic_reports=basic_reports.to_dict("records"),
         plots=[count_plot, distinct_plot],
     )
 
@@ -88,8 +76,7 @@ def basic_metric_min_max(df, max_name, min_name, metric_col, base_cols=("title",
     return pd.concat([max_df, min_df])
 
 
-def create_plot_data(figure, title, xlabel):
-    plt.title(title)
+def create_plot_data(figure, xlabel):
     plt.xlabel(xlabel)
     plt.ylabel("Frequency")
     buffer = BytesIO()

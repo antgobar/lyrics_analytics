@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lyrics_analytics.services.genius import GeniusService
+from lyrics_analytics.services.genius import GeniusService, SongData
 
 
 @pytest.fixture
@@ -142,39 +142,40 @@ class TestGeniusService:
         
         test_instance = GeniusService("url", "apikey")
         
-        actual = test_instance.get_artist_songs(1)
-        
-        assert actual == [{"song": "data"}, {"song": "data"}]
+        actual_song_data_gen = test_instance.get_artist_songs(1)
+
+        for song_data, expected in zip(actual_song_data_gen, [{"song": "data"}, {"song": "data"}]):
+            assert song_data == expected
         mock_get_artist.assert_called_with(1)
         mock_title_filter.assert_called_with("some_title")
         mock_get_artist_song_page.assert_called_with(1, 2)
         mock_get_song_data.assert_called_with({"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}})
 
-    @patch("lyrics_analytics.services.genius.GeniusService._parse_date_components")
-    @patch("lyrics_analytics.services.genius.GeniusService._lyrics_stat_summary")
+    @patch("lyrics_analytics.services.genius.GeniusService._parse_date")
     @patch("lyrics_analytics.services.scraper.ScraperService.get_lyrics")
     @patch("lyrics_analytics.services.genius.GeniusService._get_song")
-    def test_get_song_data(self, mock_get_song, mock_scraper, mock_stats, mock_date, mock_requests, ping_is_true):
+    def test_get_song_data(self, mock_get_song, mock_scraper, mock_date, mock_requests, ping_is_true):
         mock_requests.get.return_value = ping_is_true
         mock_get_song.return_value = {"song": {"album": {"name": "some album"}}}
-        mock_scraper.return_value = "some lyrics"
-        mock_stats.return_value = {"stats": "some stats", "stats 2": "some other stats"}
+        mock_scraper.return_value = ["some", "some", "lyrics"]
         mock_date.return_value = "some date"
         song_response = {
-            "primary_artist": {"name": "some artist"},
+            "primary_artist": {"name": "some artist", "id": 2},
             "title": "some title",
             "url": "some url",
             "release_date_components": "some date",
             "id": 1
         }
-        expected = {
+        expected = SongData(**{
             "name": "some artist",
             "title": "some title",
             "album": "some album",
-            "date": "some date",
-            "stats": "some stats",
-            "stats 2": "some other stats"
-        }
+            "release_date": "some date",
+            "genius_artist_id": 2,
+            "genius_song_id": 1,
+            "lyrics_count": 3,
+            "distinct_count": 2,
+        })
         
         test_instance = GeniusService("url", "apikey")
         
@@ -186,3 +187,27 @@ class TestGeniusService:
         test_instance = GeniusService("url", "apikey")
         
         assert test_instance._title_filter("title") is True
+
+    @pytest.mark.parametrize(("album_data", "expected"), [
+        (None, None),
+        ({"name": "album_name"}, "album_name"),
+        ({"other": "not album"}, None)
+    ])
+    def test_parse_album(self, mock_requests, ping_is_true, album_data, expected):
+        mock_requests.get.return_value = ping_is_true
+        test_instance = GeniusService("url", "apikey")
+
+        assert test_instance._parse_album(album_data) == expected
+
+    @pytest.mark.parametrize(("date_components", "expected"), [
+        ("not_dict", "1-01-01"),
+        ({}, "1-01-01"),
+        ({"day": 2}, "1-01-02"),
+        ({"month": 2, "day": 2}, "1-02-02"),
+        ({"year": 2, "month": 2, "day": 2}, "2-02-02")
+    ])
+    def test_parse_date(self, mock_requests, ping_is_true, date_components, expected):
+        mock_requests.get.return_value = ping_is_true
+        test_instance = GeniusService("url", "apikey")
+
+        assert test_instance._parse_date(date_components) == expected

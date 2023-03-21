@@ -3,40 +3,29 @@
 {% block title %} Reports {% endblock %}
 
 {% block content %}
-<h2 class="m-2 mt-3 mb-3">Average metrics</h2>
+<h2 class="m-2 mt-3 mb-3">Reports</h2>
 <table class="table">
     <thead>
         <tr>
             <th>Artist</th>
             <th>Average lyrics per song</th>
-            <th>Songs found</th>
+            <th>Song count</th>
+            <th>Max</th>
+            <th>Min</th>
         </tr>
     </thead>
     <tbody>
         {% for summary in summary_reports %}
         <tr>
             <td>
-                <p>
-                    <button class="btn btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample{{ loop.index }}" aria-expanded="false" aria-controls="collapseExample{{ loop.index }}">
-                        {{ summary["name"] }}
-                    </button>
-                </p>
-                <div class="collapse" id="collapseExample{{ loop.index }}">
-                    <div class="card card-body">
-                        <ul class="list-group">
-                            <li class="list-group-item">Unique lyrics per song: {{ summary["distinct_count"] | int }}</li>
-                            <li class="list-group-item">Uniqueness score: {{ summary["score"] | round(2) }}</li>
-                        </ul>
-                        <div class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center">
-                            <a class="btn btn-warning" href="{{ url_for('reports.artist', name=summary['name']) }}">
-                                Visualise
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                <a class="btn btn-warning" href="{{ url_for('reports.artist', artist_id=summary['_id']) }}">
+                    {{ summary["name"] }}
+                </a>
             </td>
-            <td>{{ summary["average_count"] | int }}</td>
-            <td>{{ summary["total"] }}</td>
+            <td>{{ summary["avg_lyrics"] }}</td>
+            <td>{{ summary["song_count"] }}</td>
+            <td>{{ summary["max_count"] }}</td>
+            <td>{{ summary["min_count"] }}</td>
         </tr>
         {% endfor %}
     </tbody>
