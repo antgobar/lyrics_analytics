@@ -11,23 +11,17 @@ from lyrics_analytics.config import Config
 class MongoDb:
     _instance = None
 
-    def __new__(cls, app=None):
+    def __new__(cls, uri):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-        cls._instance = MongoClient(
-            f"mongodb://{Config.MONGO_USERNAME}:{Config.MONGO_PASSWORD}@{Config.MONGO_HOST}:27017/"
-        )
+        cls._instance = MongoClient(uri)
         return cls._instance
 
 
-def get_db(db_name):
-    client = MongoDb()
-    return client[db_name]
-
-
-def get_collection(db_name, collection_name):
-    db = get_db(db_name)
-    return db[collection_name]
+def mongo_collection(collection: str):
+    client = MongoDb(Config.MONGO_URI)
+    database = client["lyrics_analytics"]
+    return database[collection]
 
 
 def parse_mongo(result):

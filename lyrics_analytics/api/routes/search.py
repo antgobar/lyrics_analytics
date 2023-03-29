@@ -8,7 +8,7 @@ from werkzeug.exceptions import abort
 
 from lyrics_analytics.backend.cache import CacheService
 from lyrics_analytics.backend.tasks import find_artists, artist_song_data
-from lyrics_analytics.backend import db
+from lyrics_analytics.backend.db import mongo_collection
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -47,14 +47,24 @@ def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
 
-    artists_collection = db.get_collection("lyrics_analytics", "artists")
+    artists_collection = mongo_collection("artists")
     artist_query = artists_collection.find_one({"genius_artist_id": artist_id})
 
     if artist_query is None:
+        artists_collection.insert_one(
+            {
+                "genius_artist_id": artist_id,
+                "name": name,
+                "ready": False
+            }
+        )
         artist_song_data.delay(artist_id)
-
-        flash(f"Fetching lyric data for {name}, check reports later :)")
+        flash(f"Fetching lyric data for {name}, check reports later")
         return render_template("search/index.html")
 
-    flash(f"Already fetched or fetching {name} lyrics data - check reports")
+    if artist_query["ready"]:
+        flash(f"Already fetched or fetching {name} lyrics data, reports ready")
+
+    else:
+        flash(f"Fetching {name} lyrics data,  check reports later")
     return render_template("search/index.html")

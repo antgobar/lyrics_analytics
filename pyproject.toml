@@ -3,7 +3,6 @@ name = "lyrics-analytics"
 version = "0.1.0"
 description = ""
 authors = ["Anton <antongb09@gmail.com>"]
-readme = "README.md"
 packages = [{include = "lyrics_analytics"}]
 
 [tool.poetry.dependencies]

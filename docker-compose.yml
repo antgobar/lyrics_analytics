@@ -5,19 +5,12 @@ services:
   api:
     build: .
     command: flask --app lyrics_analytics.api --debug run -h 0.0.0.0
-    environment:
-      - FLASK_ENV=development
-      - FLASK_DEBUG=1
-      - RESULT_BACKEND=redis://redis:6379
-      - BROKER_URL=amqp://user:pass@rabbit:5672/
-      - CACHE_HOST=redis
-      - MONGO_HOST=mongo
-      - MONGO_INITDB_ROOT_USERNAME=user
-      - MONGO_INITDB_ROOT_PASSWORD=pass
+    env_file:
+      - .env
     ports:
       - "5000:5000"
     volumes:
-      - .:/usr/src/app
+      - .:/app
     depends_on:
       - worker
       - redis
@@ -27,16 +20,12 @@ services:
   worker:
     build:
       context: .
-    environment:
-      - FLASK_APP=lyrics_analytics.api
-      - RESULT_BACKEND=redis://redis:6379
-      - BROKER_URL=amqp://user:pass@rabbit:5672/
-      - MONGO_HOST=mongo
-      - MONGO_INITDB_ROOT_USERNAME=user
-      - MONGO_INITDB_ROOT_PASSWORD=pass
+    env_file:
+      - .env
     volumes:
-      - .:/usr/src/app
+      - .:/app
     command: celery -A lyrics_analytics.api.celery worker --loglevel=info
+    restart: always
     depends_on:
       - redis
       - rabbit
@@ -66,7 +55,6 @@ services:
       image: mongo
       restart: always
       environment:
-        - MONGO_HOST=mongo
         - MONGO_INITDB_ROOT_USERNAME=user
         - MONGO_INITDB_ROOT_PASSWORD=pass
       ports:

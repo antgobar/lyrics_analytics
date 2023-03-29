@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-from lyrics_analytics.backend import db
+from lyrics_analytics.backend.db import mongo_collection, parse_mongo
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -19,7 +19,7 @@ sns.color_palette("Set2")
 
 @bp.route("/")
 def summary():
-    artists_collection = db.get_collection("lyrics_analytics", "song_stats")
+    artists_collection = mongo_collection("song_stats")
     pipeline = [
         {
             "$group": {
@@ -34,16 +34,16 @@ def summary():
     ]
 
     artists = list(artists_collection.aggregate(pipeline))
-    return render_template(f"{BASE}/index.html", summary_reports=db.parse_mongo(artists))
+    return render_template(f"{BASE}/index.html", summary_reports=parse_mongo(artists))
 
 
 @bp.route("/<artist_id>")
 def artist(artist_id):
-    song_stats_collection = db.get_collection("lyrics_analytics", "song_stats")
-    artists_collection = db.get_collection("lyrics_analytics", "artists")
+    song_stats_collection = mongo_collection("song_stats")
+    artists_collection = mongo_collection("artists")
 
     songs = song_stats_collection.find({"genius_artist_id": int(artist_id)})
-    df = pd.DataFrame(db.parse_mongo(list(songs)))
+    df = pd.DataFrame(parse_mongo(list(songs)))
 
     # basic_reports = pd.concat([
     #     basic_metric_min_max(df, "Longest song", "Shortest song", "lyrics_count"),
