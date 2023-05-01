@@ -14,7 +14,7 @@ from lyrics_analytics.services.scraper import ScraperService
 class SongData:
     name: str
     genius_artist_id: str
-    genius_song_id: int
+    genius_song_id: str
     title: str
     lyrics_count: int
     distinct_count: int
@@ -114,7 +114,11 @@ class GeniusService:
                 if song["lyrics_state"] != "complete" or not passed_filter or not is_primary_artist:
                     continue
 
-                yield self._get_song_data(song)
+                song_data = self._get_song_data(song)
+                if song_data.album is None:
+                    continue
+
+                yield song_data
 
             if response["next_page"] is None:
                 break

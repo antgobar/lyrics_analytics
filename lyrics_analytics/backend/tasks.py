@@ -33,7 +33,7 @@ def artist_song_data(self, artist_id):
     song_stats_collection.insert_many(songs)
     artists_collection = mongo_collection("artists")
     artists_collection.update_one(
-        {"genius_artist_id": int(artist_id)},
+        {"genius_artist_id": artist_id},
         {"$set": {"ready": True}}
     )
     return {"genius_artist_id": artist_id, "total": len(songs), "ready": True}

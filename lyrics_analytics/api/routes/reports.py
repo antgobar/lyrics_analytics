@@ -42,21 +42,15 @@ def artist(artist_id):
     song_stats_collection = mongo_collection("song_stats")
     artists_collection = mongo_collection("artists")
 
-    songs = song_stats_collection.find({"genius_artist_id": int(artist_id)})
+    songs = song_stats_collection.find({"genius_artist_id": artist_id})
     df = pd.DataFrame(parse_mongo(list(songs)))
 
-    # basic_reports = pd.concat([
-    #     basic_metric_min_max(df, "Longest song", "Shortest song", "lyrics_count"),
-    #     basic_metric_min_max(df, "Most unique", "Least unique", "distinct_count"),
-    #     basic_metric_min_max(df, "High score", "Low score", "score"),
-    # ])
-
-    name = artists_collection.find_one({"genius_artist_id": int(artist_id)})["name"]
+    name = artists_collection.find_one({"genius_artist_id": artist_id})["name"]
 
     count_fig = sns.histplot(data=df, x="lyrics_count", kde=True)
-    count_plot = create_plot_data(count_fig, "Lyrics count")
+    count_plot = create_plot_data(count_fig, "Number of lyrics")
     distinct_fig = sns.histplot(data=df, x="distinct_count", kde=True)
-    distinct_plot = create_plot_data(distinct_fig, "Unique count")
+    distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
 
     return render_template(
         f"{BASE}/plots.html",
@@ -83,3 +77,11 @@ def create_plot_data(figure, xlabel):
     figure.figure.savefig(buffer, format='png')
     plt.clf()
     return b64encode(buffer.getbuffer()).decode("ascii")
+
+
+@bp.route("/query")
+def query():
+    # song_stats_collection = mongo_collection("song_stats")
+    # song_stats_collection.update_many({"name": "Kate Bush"}, {"$set": {"genius_artist_id": "39200"}})
+    # song_stats_collection.delete_many({"album": {"$type": 10}})
+    return {"query": None}

@@ -9,9 +9,9 @@ COPY lyrics_analytics /app/lyrics_analytics
 COPY pyproject.toml poetry.lock /app/
 
 RUN pip install --upgrade pip
-RUN pip install poetry==1.3.2
+RUN pip install poetry==1.4.0
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-dev
+RUN poetry install --only main
 
 FROM build as run
 
