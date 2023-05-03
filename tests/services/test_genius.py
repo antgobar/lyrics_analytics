@@ -183,8 +183,8 @@ class TestGeniusService:
             "title": "some title",
             "album": "some album",
             "release_date": "some date",
-            "genius_artist_id": 2,
-            "genius_song_id": 1,
+            "genius_artist_id": "2",
+            "genius_song_id": "1",
             "lyrics_count": 3,
             "distinct_count": 2,
         })
