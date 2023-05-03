@@ -1,27 +1,37 @@
+import json
+from datetime import datetime
+from typing import Any
+from bson import ObjectId
+
 from pymongo import MongoClient
-import pandas as pd
-from sqlalchemy import create_engine
 
 from lyrics_analytics.config import Config
 
 
-def get_engine():
-    return create_engine(Config.SQLALCHEMY_DATABASE_URI)
+class MongoDb:
+    _instance = None
+
+    def __new__(cls, uri):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        cls._instance = MongoClient(uri)
+        return cls._instance
 
 
-def df_writer(data, table_name):
-    df = pd.DataFrame(data)
-    engine = get_engine()
-    df.to_sql(table_name, con=engine, if_exists="append", index=False)
+def mongo_collection(collection: str):
+    client = MongoDb(Config.MONGO_URI)
+    database = client["lyrics_analytics"]
+    return database[collection]
 
 
-def mongo_db(db_name: str):
-    client = MongoClient(
-        f"mongodb://{Config.MONGO_USERNAME}:{Config.MONGO_PASSWORD}@{Config.MONGO_HOST}:27017/"
-    )
-    return client[db_name]
+def parse_mongo(result):
+    return json.loads(MongoJSONEncoder().encode(result))
 
 
-def mongo_collection(db_name, collection_name):
-    db = mongo_db(db_name)
-    return db[collection_name]
+class MongoJSONEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, datetime):
+            return str(o)
+        return json.JSONEncoder.default(self, o)

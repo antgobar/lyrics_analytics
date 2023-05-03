@@ -1,38 +1,99 @@
+from base64 import b64encode
 import os
+from io import BytesIO
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for
 import pandas as pd
+from matplotlib import pyplot as plt
+import seaborn as sns
 
-from lyrics_analytics.api.models import User, LyricsStats
+from lyrics_analytics.backend.db import mongo_collection, parse_mongo
 
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
+sns.set_style("dark")
+sns.light_palette("seagreen", as_cmap=True)
+sns.color_palette("Set2")
 
 
-@bp.route("/")
+@bp.route("/", methods=("GET", "POST"))
 def summary():
-    artist_name = "Artist"
-    lyrics_count = "Avg lyrics/song"
-    distinct_count = "Avg distinct lyrics/song"
-    distinct_score = "Distinctness"
-    total_songs = "Total songs"
-    report_data = [
+    if request.method == "POST":
+        artist_ids = request.form.getlist("row_checkbox")
+        return redirect(url_for(f"{BASE}.combined_reports", artist_ids=artist_ids))
+
+    artists_collection = mongo_collection("song_stats")
+    pipeline = [
         {
-            artist_name: stat.name,
-            lyrics_count: stat.count,
-            distinct_count: stat.distinct_count,
-            distinct_score: stat.distinct_score
-        } for stat in LyricsStats.query.all()
+            "$group": {
+                "_id": "$genius_artist_id",
+                "name": {"$first": "$name"},
+                "avg_lyrics": {"$avg": "$lyrics_count"},
+                "song_count": {"$sum": 1},
+            }
+        },
     ]
-    df = pd.DataFrame(report_data)
-    grouped = df.groupby([artist_name], as_index=False).mean()
-    song_counts = df.groupby([artist_name], as_index=False).size()
-    song_counts = song_counts.rename(columns={"size": total_songs})
-    summary_df = pd.merge(grouped, song_counts, on=artist_name)
-    summary_df = summary_df.round({
-        lyrics_count: 0,
-        distinct_count: 0,
-        distinct_score: 3
-    })
-    return render_template(f"{BASE}/index.html", summary_reports=summary_df.to_dict("records"))
+
+    artists = list(artists_collection.aggregate(pipeline))
+    return render_template(f"{BASE}/index.html", summary_reports=parse_mongo(artists))
+
+
+@bp.route("/<artist_id>")
+def artist(artist_id):
+    song_stats_collection = mongo_collection("song_stats")
+    artists_collection = mongo_collection("artists")
+
+    songs = song_stats_collection.find({"genius_artist_id": artist_id})
+    df = pd.DataFrame(parse_mongo(list(songs)))
+
+    name = artists_collection.find_one({"genius_artist_id": artist_id})["name"]
+
+    count_fig = sns.histplot(data=df, x="lyrics_count", kde=True)
+    count_plot = create_plot_data(count_fig, "Number of lyrics")
+    distinct_fig = sns.histplot(data=df, x="distinct_count", kde=True)
+    distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
+
+    return render_template(
+        f"{BASE}/plots.html",
+        artists=name,
+        plots=[count_plot, distinct_plot],
+    )
+
+
+@bp.route("/combined")
+def combined_reports():
+    artist_ids = request.args.getlist("artist_ids")
+    song_stats_collection = mongo_collection("song_stats")
+    songs = song_stats_collection.find({"genius_artist_id": {'$in': artist_ids}})
+    df = pd.DataFrame(parse_mongo(list(songs)))
+
+    count_fig = sns.histplot(data=df, x="lyrics_count", hue="name", kde=True)
+    count_plot = create_plot_data(count_fig, "Number of lyrics")
+    distinct_fig = sns.histplot(data=df, x="distinct_count", hue="name", kde=True)
+    distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
+
+    return render_template(
+        f"{BASE}/plots.html",
+        artist=None,
+        plots=[count_plot, distinct_plot],
+    )
+
+
+def create_plot_data(figure, xlabel):
+    plt.xlabel(xlabel)
+    plt.ylabel("Frequency")
+    buffer = BytesIO()
+    figure.figure.savefig(buffer, format='png')
+    plt.clf()
+    return b64encode(buffer.getbuffer()).decode("ascii")
+
+
+@bp.route("/query")
+def query():
+    # song_stats_collection = mongo_collection("song_stats")
+    # song_stats_collection.update_many({"name": "Steel Panther"}, {"$set": {"genius_artist_id": "247279"}})
+    # song_stats_collection.update_many({"name": "Metallica"}, {"$set": {"genius_artist_id": "10662"}})
+    # song_stats_collection.update_many({"name": "Pantera"}, {"$set": {"genius_artist_id": "63725"}})
+    # song_stats_collection.delete_many({"album": {"$type": 10}})
+    return {"query": None}

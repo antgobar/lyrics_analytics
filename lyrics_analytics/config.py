@@ -7,29 +7,28 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
+    APP_ENV = os.getenv("APP_ENV")
     DEBUG = False
     TESTING = False
     WTF_CSRF_ENABLED = True
-    SECRET_KEY = os.getenv("FLASK_SECRET_KEY", default="some key")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
     CELERY_CONFIG = {
-        "broker_url": os.environ.get("BROKER_URL", "amqp://localhost:5672"),
-        "result_backend": os.environ.get("RESULT_BACKEND", "redis://localhost:6379")
+        "broker_url": os.environ.get("BROKER_URL"),
+        "result_backend": os.environ.get("RESULT_BACKEND")
     }
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(basedir, "lyrics-analytics.db"))
-    MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
-    MONGO_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME")
-    MONGO_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
+    MONGO_URI = os.getenv("MONGO_URI")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    APP_ENV = "DEV"
 
 
 class TestingConfig(Config):
     TESTING = True
+    APP_ENV = "TEST"
 
 
 class ProductionConfig(Config):
-    FLASK_ENV = "production"
+    APP_ENV = "PROD"

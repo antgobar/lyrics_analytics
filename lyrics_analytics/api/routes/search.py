@@ -7,7 +7,8 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from lyrics_analytics.backend.cache import CacheService
-from lyrics_analytics.backend.tasks import find_artists, get_artist_songs
+from lyrics_analytics.backend.tasks import find_artists, artist_song_data
+from lyrics_analytics.backend.db import mongo_collection
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -19,61 +20,51 @@ cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 @bp.route("/", methods=("GET", "POST"))
 def index():
     if request.method == "GET":
-        return render_template("search/index.html")
+        return render_template(f"{BASE}/index.html")
     name = request.form["artist-name"]
-    return redirect(url_for("search.artists", name=name, use_cache=True))
+    return redirect(url_for(f"{BASE}.search", name=name))
 
 
-@bp.route("/artists", methods=("GET", "POST"))
-def artists():
+@bp.route("/search", methods=("GET", "POST"))
+def search():
     if request.method == "POST":
-        return redirect(url_for("search.artists", name=request.form["artist-name"], use_cache=True))
+        return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"]))
 
     name = request.args.get("name")
-    use_cache = request.args.get("use_cache")
-
-    if not use_cache:
-        artists_found = find_artists.delay(name).get()
-        return render_template("search/index.html", artists=artists_found)
-
-    if cache.is_stored("searched_artists", name):
-        artists_found = cache.get_value("searched_artists", name)
-        return render_template("search/index.html", artists=artists_found, name=name)
-
     artists_found = find_artists.delay(name).get()
 
     if not artists_found:
-        return render_template("search/index.html", not_found=True, name=name)
+        flash(f"No results found for {name}")
 
-    cache.update_store("searched_artists", name, artists_found)
-    return render_template("search/index.html", artists=artists_found)
+    return render_template(f"{BASE}/index.html", artists=artists_found)
 
 
 @bp.route("/artist", methods=("GET", "POST"))
 def artist():
     if request.method == "POST":
-        return redirect(url_for("search.artists", name=request.form["artist-name"], use_cache=True))
+        return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"], use_cache=True))
 
     artist_id = request.args.get("id")
     name = request.args.get("name")
 
-    process_key = f"{name.lower()}__{artist_id}"
-    if cache.is_stored("getting_lyrics", process_key):
-        flash(f"Already fetched or fetching {name} lyrics data - check reports")
-        return render_template("search/index.html")
+    artists_collection = mongo_collection("artists")
+    artist_query = artists_collection.find_one({"genius_artist_id": artist_id})
 
+    if artist_query is None:
+        artists_collection.insert_one(
+            {
+                "genius_artist_id": artist_id,
+                "name": name,
+                "ready": False
+            }
+        )
+        artist_song_data.delay(artist_id)
+        flash(f"Fetching lyric data for {name}, check reports later")
+        return render_template(f"{BASE}/index.html")
 
-    task = get_artist_songs.delay(artist_id)
-    cache.update_store("getting_lyrics", process_key, task.id)
+    if artist_query["ready"]:
+        flash(f"Already fetched or fetching {name} lyrics data, reports ready")
 
-    flash(f"Fetching lyric data for {name}, check reports later :)")
-    return render_template("search/index.html")
-
-
-@bp.route("/artist/<name>")
-def songs(name):
-    task_id = request.args.get("task_id")
-    task = get_artist_songs.AsyncResult(task_id)
-    if task.ready():
-        return render_template("search/songs.html", artist_name=name, artist_data=task.result)
-    return {"status": "Not Ready"}
+    else:
+        flash(f"Fetching {name} lyrics data,  check reports later")
+    return render_template(f"{BASE}/index.html")

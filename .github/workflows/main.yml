@@ -1,15 +1,15 @@
-name: Python package
+name: Test Build Deploy
 
 on:
   push:
     branches:
       - main
   pull_request:
-    types:
-      - closed
+    branches:
+      - main
 
 jobs:
-  build:
+  Test:
     runs-on: ubuntu-20.04
     strategy:
       matrix:

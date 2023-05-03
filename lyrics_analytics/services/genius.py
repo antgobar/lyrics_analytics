@@ -1,12 +1,29 @@
 from typing import Callable
 import logging
 from datetime import date
+from dataclasses import dataclass
 
 import requests
 from requests.models import Response
 from dotenv import dotenv_values
 
 from lyrics_analytics.services.scraper import ScraperService
+
+
+@dataclass
+class SongData:
+    name: str
+    genius_artist_id: str
+    genius_song_id: str
+    title: str
+    lyrics_count: int
+    distinct_count: int
+    album: str
+    release_date: date
+
+    @property
+    def distinct_coefficient(self):
+        return self.distinct_count / self.lyrics_count
 
 
 class GeniusService:
@@ -16,6 +33,7 @@ class GeniusService:
             access_token = dotenv_values(".env").get("GENIUS_CLIENT_ACCESS_TOKEN")
         self._base_params = {"access_token": access_token}
         self.titles = []
+        self.artist_data = None
         if healthcheck:
             self.ping()
 
@@ -77,10 +95,17 @@ class GeniusService:
         url = f"{self._base_url}/songs/{song_id}"
         return requests.get(url, params=self._base_params)
 
+    def get_artist_data(self, artist_id: int):
+        self.artist_data = self._get_artist(artist_id)["artist"]
+        return self.artist_data
+
     def get_artist_songs(self, artist_id: int) -> list:
-        artist_name = self._get_artist(artist_id)["artist"]["name"].lower()
+        if self.artist_data is None:
+            artist_name = self.get_artist_data(artist_id)["name"].lower()
+        else:
+            artist_name = self.artist_data["name"].lower()
         page_no = 1
-        songs = []
+
         while True:
             response = self._get_artist_song_page(artist_id, page_no)
             for song in response["songs"]:
@@ -90,7 +115,10 @@ class GeniusService:
                     continue
 
                 song_data = self._get_song_data(song)
-                songs.append(song_data)
+                if song_data.album is None:
+                    continue
+
+                yield song_data
 
             if response["next_page"] is None:
                 break
@@ -98,48 +126,34 @@ class GeniusService:
             page_no += 1
 
         self.titles = []
-        return songs   
-    
-    @staticmethod
-    def _lyrics_stat_summary(lyrics):
-        lyrics = lyrics.split(" ")
-        count = len(lyrics)
-        unique_count = len(set(lyrics))
-        return {
-            "count": count,
-            "distinct_count": unique_count,
-            "distinct_score": round(unique_count / count, 3)
-        }
 
     @staticmethod
-    def _parse_date_components(date_components: dict) -> date:
-        year = date_components.get("year") or 1
-        month = date_components.get("month") or 1
-        day = date_components.get("day") or 1
-        return date(year, month, day)
+    def _parse_date(date_component_data: dict | str) -> str | date:
+        if type(date_component_data) is not dict:
+            date_component_data = {}
+        year = date_component_data.get("year") or 1
+        month = date_component_data.get("month") or 1
+        day = date_component_data.get("day") or 1
+        return date(year, month, day).strftime("%Y-%m-%d")
 
-    def _get_song_data(self, song_response: dict) -> dict:
+    @staticmethod
+    def _parse_album(album_data: dict) -> str | None:
+        return album_data if album_data is None else album_data.get("name")
+
+    def _get_song_data(self, song_response: dict) -> SongData:
         song = self._get_song(song_response["id"])["song"]
-        lyrics = ScraperService.get_lyrics(song_response["url"])
-        stat_summary = self._lyrics_stat_summary(lyrics)
-        album_data = song.get("album")
-        if album_data is None:
-            album = None
-        else:
-            album = album_data.get("name")
+        lyrics = ScraperService.get_lyrics(song_response["url"]).split(" ")
+        return SongData(
+            name=song_response["primary_artist"]["name"],
+            genius_artist_id=str(song_response["primary_artist"]["id"]),
+            genius_song_id=str(song_response["id"]),
+            title=song_response["title"],
+            lyrics_count=len(lyrics),
+            distinct_count=len(set(lyrics)),
+            album=self._parse_album(song.get("album")),
+            release_date=self._parse_date(song_response.get("release_date_components"))
+        )
 
-        date_components = song_response.get("release_date_components")
-        if type(date_components) is not dict:
-            date_components = {}
-
-        metadata = {
-            "name": song_response["primary_artist"]["name"],
-            "title": song_response["title"],
-            "album": album,
-            "date": self._parse_date_components(date_components)
-        }
-        return {**metadata, **stat_summary}
-    
     def _title_filter(self, title: str) -> bool:
         title = title.lower()
         
@@ -147,7 +161,12 @@ class GeniusService:
         for pattern in replace_patterns:    
             title = title.replace(pattern, " ")
     
-        patterns = ("(", "[", "demo", "tour", "award", "speech", "annotated")
+        patterns = (
+            "(", "[", ")", "]", "demo", "tour",
+            "award", "speech", "annotated", "transcript",
+            "discography"
+        )
+
         for pattern in patterns:
             if pattern in title:
                 return False

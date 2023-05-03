@@ -1,24 +1,22 @@
 from flask import Flask
-import pandas as pd
 
 from lyrics_analytics.backend.worker import make_celery
-from lyrics_analytics.api.extensions import db
-from lyrics_analytics import config
-from lyrics_analytics.api.models import LyricsStats
+from lyrics_analytics.backend.db import mongo_collection
+from lyrics_analytics.config import Config, DevelopmentConfig
 
 
 def create_app(test_config=None):
     flaskapp = Flask(__name__, instance_relative_config=True)
-    flaskapp.config.from_object(config.DevelopmentConfig)
+    flaskapp.config.from_object(DevelopmentConfig)
+    flaskapp.secret_key = Config.FLASK_SECRET_KEY
 
     celeryapp = make_celery(flaskapp)
     celeryapp.set_default()
 
-    db.init_app(flaskapp)
-
     @flaskapp.context_processor
     def inject_data():
-        count = db.session.query(db.func.count(db.func.distinct(LyricsStats.name))).scalar()
+        artists_collection = mongo_collection("artists")
+        count = artists_collection.count_documents({"ready": True})
         return dict(reports_ready=count)
 
     from lyrics_analytics.api.routes import reports

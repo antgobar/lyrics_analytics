@@ -3,23 +3,42 @@
 {% block title %} Reports {% endblock %}
 
 {% block content %}
-<h2>Average metrics</h2>
-<table class="table">
-    <thead>
-        <tr>
-            {% for key in summary_reports[0].keys() %}
-            <th>{{ key }}</th>
+<h2 class="m-2 mt-3 mb-3">
+    Reports
+</h2>
+<div class="mb-3">Select one or more artists and generate a report</div>
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Artist</th>
+                <th>Average lyrics per song</th>
+                <th>Total song count</th>
+                <th>Select Artist</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for summary in summary_reports %}
+            <tr>
+                <td>{{ summary["name"] }}</td>
+                <td>{{ summary["avg_lyrics"] | int }}</td>
+                <td>{{ summary["song_count"] }}</td>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="{{ summary['_id'] }}" id="flexCheckDefault" name="row_checkbox">
+                        <label class="form-check-label" for="flexCheckDefault"></label>
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for summary in summary_reports %}
-        <tr>
-            {% for value in summary.values() %}
-            <td>{{ value }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <button type="submit" class="btn btn-warning float-end">Generate Report</button>
+        </div>
+      </div>
+    </div>
+</form>
 {% endblock %}
