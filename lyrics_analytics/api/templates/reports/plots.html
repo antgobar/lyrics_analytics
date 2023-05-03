@@ -3,7 +3,7 @@
 {% block title %} {{ artist }} Reports {% endblock %}
 
 {% block content %}
-<h2 class="m-2 mt-3 mb-3">{{ artist }} Reports</h2>
+<h2 class="m-2 mt-3 mb-3">{{ artists }}</h2>
 <br>
 <div class="container">
     <div class="row mb-1">
@@ -13,5 +13,10 @@
         </div>
     {% endfor %}
     </div>
+</div>
+<div class="mb-2">
+    <a class="btn btn-warning" href="{{ url_for('reports.summary') }}">
+        Back to reports
+    </a>
 </div>
 {% endblock %}

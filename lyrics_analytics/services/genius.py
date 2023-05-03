@@ -145,8 +145,8 @@ class GeniusService:
         lyrics = ScraperService.get_lyrics(song_response["url"]).split(" ")
         return SongData(
             name=song_response["primary_artist"]["name"],
-            genius_artist_id=song_response["primary_artist"]["id"],
-            genius_song_id=song_response["id"],
+            genius_artist_id=str(song_response["primary_artist"]["id"]),
+            genius_song_id=str(song_response["id"]),
             title=song_response["title"],
             lyrics_count=len(lyrics),
             distinct_count=len(set(lyrics)),

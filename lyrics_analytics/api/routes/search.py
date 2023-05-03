@@ -20,15 +20,15 @@ cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 @bp.route("/", methods=("GET", "POST"))
 def index():
     if request.method == "GET":
-        return render_template("search/index.html")
+        return render_template(f"{BASE}/index.html")
     name = request.form["artist-name"]
-    return redirect(url_for("search.search", name=name))
+    return redirect(url_for(f"{BASE}.search", name=name))
 
 
 @bp.route("/search", methods=("GET", "POST"))
 def search():
     if request.method == "POST":
-        return redirect(url_for("search.search", name=request.form["artist-name"]))
+        return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"]))
 
     name = request.args.get("name")
     artists_found = find_artists.delay(name).get()
@@ -36,13 +36,13 @@ def search():
     if not artists_found:
         flash(f"No results found for {name}")
 
-    return render_template("search/index.html", artists=artists_found)
+    return render_template(f"{BASE}/index.html", artists=artists_found)
 
 
 @bp.route("/artist", methods=("GET", "POST"))
 def artist():
     if request.method == "POST":
-        return redirect(url_for("search.search", name=request.form["artist-name"], use_cache=True))
+        return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"], use_cache=True))
 
     artist_id = request.args.get("id")
     name = request.args.get("name")
@@ -60,11 +60,11 @@ def artist():
         )
         artist_song_data.delay(artist_id)
         flash(f"Fetching lyric data for {name}, check reports later")
-        return render_template("search/index.html")
+        return render_template(f"{BASE}/index.html")
 
     if artist_query["ready"]:
         flash(f"Already fetched or fetching {name} lyrics data, reports ready")
 
     else:
         flash(f"Fetching {name} lyrics data,  check reports later")
-    return render_template("search/index.html")
+    return render_template(f"{BASE}/index.html")
