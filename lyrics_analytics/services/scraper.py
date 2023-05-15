@@ -5,6 +5,9 @@ import requests
 from bs4 import BeautifulSoup
 
 
+REPLACE_CHARS = ("\n", ",", ".", "(", ")", "/", "\"", "\\", "-")
+
+
 class ScraperService:
     @classmethod
     def get_lyrics(cls, url: str) -> str:
@@ -34,7 +37,7 @@ class ScraperService:
         lyrics = re.sub('\n{2}', '\n', lyrics)
         lyrics = lyrics.strip("\n").lower()
 
-        lyrics = cls.replacer(lyrics, ("\n", ",", ".", "(", ")", "/", "\"", "\\", "-"), " ")
+        lyrics = cls.replacer(lyrics, REPLACE_CHARS, " ")
         lyrics = lyrics.replace("  ", " ")
 
         lyrics = lyrics.split("lyrics ")

@@ -26,6 +26,14 @@ class SongData:
         return self.distinct_count / self.lyrics_count
 
 
+TITLE_FILTERS = (
+    "(", "[", ")", "]", "demo", "tour",
+    "award", "speech", "annotated", "transcript", "discography"
+)
+
+REPLACE_PATTERNS = ("\u2014", )
+
+
 class GeniusService:
     def __init__(self, _base_url: str, access_token: str, healthcheck=True) -> None:
         self._base_url = _base_url
@@ -156,18 +164,11 @@ class GeniusService:
 
     def _title_filter(self, title: str) -> bool:
         title = title.lower()
-        
-        replace_patterns = ("\u2014", )
-        for pattern in replace_patterns:    
-            title = title.replace(pattern, " ")
-    
-        patterns = (
-            "(", "[", ")", "]", "demo", "tour",
-            "award", "speech", "annotated", "transcript",
-            "discography"
-        )
 
-        for pattern in patterns:
+        for pattern in REPLACE_PATTERNS:
+            title = title.replace(pattern, " ")
+
+        for pattern in TITLE_FILTERS:
             if pattern in title:
                 return False
         
