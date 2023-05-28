@@ -2,7 +2,7 @@ from base64 import b64encode
 import os
 from io import BytesIO
 
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -64,9 +64,23 @@ def artist(artist_id):
 @bp.route("/combined")
 def combined_reports():
     artist_ids = request.args.getlist("artist_ids")
+    if len(artist_ids) > 3:
+        flash("Select no more than 3 artists")
+        return redirect(url_for(f"{BASE}.summary"))
+
+    if len(artist_ids) < 1:
+        flash("Select at least 1 artist...")
+        return redirect(url_for(f"{BASE}.summary"))
+
     song_stats_collection = mongo_collection("song_stats")
     songs = song_stats_collection.find({"genius_artist_id": {'$in': artist_ids}})
-    df = pd.DataFrame(parse_mongo(list(songs)))
+    parsed_songs = list(songs)
+
+    if len(parsed_songs) <= 1:
+        flash("There must be more that one song to generate a report")
+        return redirect(url_for(f"{BASE}.summary"))
+
+    df = pd.DataFrame(parse_mongo(parsed_songs))
 
     count_fig = sns.histplot(data=df, x="lyrics_count", hue="name", kde=True)
     count_plot = create_plot_data(count_fig, "Number of lyrics")

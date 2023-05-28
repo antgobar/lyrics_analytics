@@ -28,8 +28,8 @@ services:
     restart: always
     depends_on:
       - redis
-      - rabbit
       - mongo
+#      - rabbit
 
   redis:
     image: redis:6-alpine
@@ -39,17 +39,17 @@ services:
       - redis-data:/var/lib/redis
     restart: always
 
-  rabbit:
-    image: rabbitmq:3-management-alpine
-    environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=pass
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    restart: always
+#  rabbit:
+#    image: rabbitmq:3-management-alpine
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=user
+#      - RABBITMQ_DEFAULT_PASS=pass
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    volumes:
+#      - rabbitmq-data:/var/lib/rabbitmq
+#    restart: always
 
   mongo:
       image: mongo
@@ -79,5 +79,5 @@ services:
 
 volumes:
   redis-data:
-  rabbitmq-data:
   mongo-data:
+#  rabbitmq-data:

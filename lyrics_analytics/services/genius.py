@@ -69,20 +69,19 @@ class GeniusService:
         params["q"] = artist_name
         return requests.get(url=url, params=params)
 
+    @staticmethod
+    def _find_artists_iter(hit_result: dict, artist_name: str) -> dict | None:
+        if artist_name.lower() in hit_result["result"]["primary_artist"]["name"].lower():
+            artist_data = hit_result["result"]["primary_artist"]
+            return {"id": artist_data["id"], "name": artist_data["name"]}
+
     def find_artists(self, artist_name: str) -> list[dict] or None:
         response = self._search_artist(artist_name)
         if response is None:
             logging.info(f"Not found: {artist_name}")
             return []
 
-        artists_found = []
-        for result in response["hits"]:
-            if artist_name.lower() in result["result"]["primary_artist"]["name"].lower():
-                artist_data = result["result"]["primary_artist"]
-                artists_found.append(
-                    {"id": artist_data["id"], "name": artist_data["name"]}
-                )
-
+        artists_found = [self._find_artists_iter(result, artist_name) for result in response["hits"]]
         return list({artist["id"]: artist for artist in artists_found}.values())
 
     @handle_response
