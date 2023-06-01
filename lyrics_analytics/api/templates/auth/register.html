@@ -1,15 +1,24 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Register{% endblock %}</h1>
-{% endblock %}
+{% block title %}Sign Up{% endblock %}
 
 {% block content %}
-  <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Register">
+<div class="container mt-3 text-center">
+  <div>
+    <a href="{{ url_for('search.index') }}">
+      <img src="{{url_for('static', filename='images/logo.png')}}" class="rounded img-fluid" alt="Responsive image" width="400">
+    </a>
+  </div>
+  <form method="post" class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center" onsubmit="submitForm()">
+    <div>
+      <label class="visually-hidden" for="username">Username</label>
+      <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+      <br>
+      <label class="visually-hidden" for="password">Password</label>
+      <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+      <br>
+      <button id="user-button" type="submit" class="btn btn-warning text-dark">Sign Up</button>
+    </div>
   </form>
+</div>
 {% endblock %}

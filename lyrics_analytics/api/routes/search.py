@@ -9,7 +9,7 @@ from werkzeug.exceptions import abort
 from lyrics_analytics.backend.cache import CacheService
 from lyrics_analytics.backend.tasks import find_artists, artist_song_data
 from lyrics_analytics.backend.db import mongo_collection
-
+from lyrics_analytics.api.routes.auth import login_required
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__)
@@ -18,6 +18,7 @@ cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 
 
 @bp.route("/", methods=("GET", "POST"))
+@login_required
 def index():
     if request.method == "GET":
         return render_template(f"{BASE}/index.html")

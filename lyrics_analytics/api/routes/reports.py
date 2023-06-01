@@ -7,6 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+from lyrics_analytics.api.routes.auth import login_required
 from lyrics_analytics.backend.db import mongo_collection, parse_mongo
 
 
@@ -18,12 +19,13 @@ sns.color_palette("Set2")
 
 
 @bp.route("/", methods=("GET", "POST"))
+@login_required
 def summary():
     if request.method == "POST":
         artist_ids = request.form.getlist("row_checkbox")
         return redirect(url_for(f"{BASE}.combined_reports", artist_ids=artist_ids))
 
-    artists_collection = mongo_collection("song_stats")
+    song_stats_collection = mongo_collection("song_stats")
     pipeline = [
         {
             "$group": {
@@ -32,14 +34,17 @@ def summary():
                 "avg_lyrics": {"$avg": "$lyrics_count"},
                 "song_count": {"$sum": 1},
             }
+
         },
+        {"$sort": {"name": 1}}
     ]
 
-    artists = list(artists_collection.aggregate(pipeline))
+    artists = list(song_stats_collection.aggregate(pipeline))
     return render_template(f"{BASE}/index.html", summary_reports=parse_mongo(artists))
 
 
 @bp.route("/<artist_id>")
+@login_required
 def artist(artist_id):
     song_stats_collection = mongo_collection("song_stats")
     artists_collection = mongo_collection("artists")
@@ -62,6 +67,7 @@ def artist(artist_id):
 
 
 @bp.route("/combined")
+@login_required
 def combined_reports():
     artist_ids = request.args.getlist("artist_ids")
     if len(artist_ids) > 3:

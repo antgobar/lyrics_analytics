@@ -6,14 +6,14 @@ from lyrics_analytics.config import Config, DevelopmentConfig
 
 
 def create_app(test_config=None):
-    flaskapp = Flask(__name__, instance_relative_config=True)
-    flaskapp.config.from_object(DevelopmentConfig)
-    flaskapp.secret_key = Config.FLASK_SECRET_KEY
+    flask_app = Flask(__name__, instance_relative_config=True)
+    flask_app.config.from_object(DevelopmentConfig)
+    flask_app.secret_key = Config.FLASK_SECRET_KEY
 
-    celeryapp = make_celery(flaskapp)
-    celeryapp.set_default()
+    celery_app = make_celery(flask_app)
+    celery_app.set_default()
 
-    @flaskapp.context_processor
+    @flask_app.context_processor
     def inject_data():
         artists_collection = mongo_collection("artists")
         count = artists_collection.count_documents({"ready": True})
@@ -24,14 +24,14 @@ def create_app(test_config=None):
     from lyrics_analytics.api.routes import admin
     from lyrics_analytics.api.routes import auth
 
-    flaskapp.register_blueprint(search.bp)
-    flaskapp.register_blueprint(auth.bp)
-    flaskapp.register_blueprint(reports.bp)
-    flaskapp.register_blueprint(admin.bp)
+    flask_app.register_blueprint(search.bp)
+    flask_app.register_blueprint(auth.bp)
+    flask_app.register_blueprint(reports.bp)
+    flask_app.register_blueprint(admin.bp)
 
-    flaskapp.add_url_rule("/", endpoint="index")
+    flask_app.add_url_rule("/", endpoint="index")
 
-    return flaskapp, celeryapp
+    return flask_app, celery_app
 
 
 app, celery = create_app()

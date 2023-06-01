@@ -75,13 +75,14 @@ class GeniusService:
             artist_data = hit_result["result"]["primary_artist"]
             return {"id": artist_data["id"], "name": artist_data["name"]}
 
-    def find_artists(self, artist_name: str) -> list[dict] or None:
+    def find_artists(self, artist_name: str) -> list[dict] | None:
         response = self._search_artist(artist_name)
         if response is None:
             logging.info(f"Not found: {artist_name}")
             return []
-
         artists_found = [self._find_artists_iter(result, artist_name) for result in response["hits"]]
+        artists_found = [found for found in artists_found if found is not None]
+
         return list({artist["id"]: artist for artist in artists_found}.values())
 
     @handle_response
