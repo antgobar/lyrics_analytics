@@ -4,5 +4,6 @@ __pycache__/
 .ipynb_checkpoints/
 local/
 .env
+.env.prod
 .env.secrets
 .idea

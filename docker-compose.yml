@@ -77,6 +77,15 @@ services:
     ports:
       - "8081:8081"
 
+  redis-commander:
+    image: rediscommander/redis-commander
+    ports:
+      - "8082:8081"
+    environment:
+      - REDIS_HOSTS=redis
+    depends_on:
+      - redis
+
 volumes:
   redis-data:
   mongo-data:

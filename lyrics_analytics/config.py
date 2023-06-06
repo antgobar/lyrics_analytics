@@ -18,6 +18,7 @@ class Config:
     }
     MONGO_URI = os.getenv("MONGO_URI")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
+    PEPPER = os.getenv("PEPPER")
 
 
 class DevelopmentConfig(Config):

@@ -7,6 +7,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from lyrics_analytics.config import Config
 from lyrics_analytics.backend.db import mongo_collection, parse_mongo
 
 
@@ -29,7 +30,7 @@ def register():
         return redirect(url_for(f"{BASE}.register"))
 
     user_collection.insert_one(
-        {"username": username, "password": generate_password_hash(password)}
+        {"username": username, "password": generate_password_hash(password + Config.PEPPER)}
     )
 
     return redirect(url_for("auth.login"))
@@ -46,7 +47,7 @@ def login():
 
     user = user_collection.find_one({"username": username})
 
-    if not user or not check_password_hash(user["password"], password):
+    if not user or not check_password_hash(user["password"], password + Config.PEPPER):
         flash(f"Incorrect username or password for {username}")
         return render_template(f"{BASE}/login.html")
 
