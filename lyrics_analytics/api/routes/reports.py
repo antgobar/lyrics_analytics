@@ -13,6 +13,8 @@ from lyrics_analytics.backend.db import mongo_collection, parse_mongo
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
+
+
 sns.set_style("dark")
 sns.light_palette("seagreen", as_cmap=True)
 sns.color_palette("Set2")

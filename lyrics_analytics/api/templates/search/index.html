@@ -4,11 +4,7 @@
 
 {% block content %}
 <div class="container mt-3 text-center">
-  <div>
-    <a href="{{ url_for('search.index') }}">
-      <img src="{{url_for('static', filename='images/logo-2.png')}}" class="rounded img-fluid" alt="Responsive image" width="400">
-    </a>
-  </div>
+  {% include 'logo.html' %}
   <form method="post" class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center" onsubmit="submitForm()">
     <div>
       <label class="visually-hidden" for="artist-name">Artist Name</label>

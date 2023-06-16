@@ -13,6 +13,13 @@ def create_app(test_config=None):
     celery_app = make_celery(flask_app)
     celery_app.set_default()
 
+    if test_config is None:
+        # load the instance config, if it exists, when not testing
+        flask_app.config.from_pyfile("config.py", silent=True)
+    else:
+        # load the test config if passed in
+        flask_app.config.from_mapping(test_config)
+
     @flask_app.context_processor
     def inject_data():
         artists_collection = mongo_collection("artists")
