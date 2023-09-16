@@ -1,11 +1,4 @@
-{% extends 'base.html' %}
-
-{% block title %} Reports {% endblock %}
-
-{% block content %}
-<h3 class="m-2 mt-3 mb-3">Select up to 3 artists and generate a report</h3>
-<form method="post">
-    <table class="table" id="reportsTable">
+<table class="table" id="reportsTable">
         <thead>
             <tr>
                 <th>Artist</th>
@@ -30,12 +23,3 @@
             {% endfor %}
         </tbody>
     </table>
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <button type="submit" class="btn btn-warning float-end">Generate Report</button>
-        </div>
-      </div>
-    </div>
-</form>
-{% endblock %}

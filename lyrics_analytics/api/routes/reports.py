@@ -5,6 +5,7 @@ from io import BytesIO
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import pandas as pd
 from matplotlib import pyplot as plt
+import plotly.express as px
 import seaborn as sns
 
 from lyrics_analytics.api.routes.auth import login_required
@@ -42,33 +43,10 @@ def summary():
     ]
 
     artists = list(song_stats_collection.aggregate(pipeline))
-    return render_template(f"{BASE}/index.html", summary_reports=parse_mongo(artists))
+    return render_template(f"{BASE}/reports.html", summary_reports=parse_mongo(artists))
 
 
-@bp.route("/<artist_id>")
-@login_required
-def artist(artist_id):
-    song_stats_collection = mongo_collection("song_stats")
-    artists_collection = mongo_collection("artists")
-
-    songs = song_stats_collection.find({"genius_artist_id": artist_id})
-    df = pd.DataFrame(parse_mongo(list(songs)))
-
-    name = artists_collection.find_one({"genius_artist_id": artist_id})["name"]
-
-    count_fig = sns.histplot(data=df, x="lyrics_count", kde=True)
-    count_plot = create_plot_data(count_fig, "Number of lyrics")
-    distinct_fig = sns.histplot(data=df, x="distinct_count", kde=True)
-    distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
-
-    return render_template(
-        f"{BASE}/plots.html",
-        artists=name,
-        plots=[count_plot, distinct_plot],
-    )
-
-
-@bp.route("/combined")
+@bp.route("/plots")
 @login_required
 def combined_reports():
     artist_ids = request.args.getlist("artist_ids")
@@ -82,24 +60,56 @@ def combined_reports():
 
     song_stats_collection = mongo_collection("song_stats")
     songs = song_stats_collection.find({"genius_artist_id": {'$in': artist_ids}})
-    parsed_songs = list(songs)
+    songs = list(songs)
 
-    if len(parsed_songs) <= 1:
+    if len(songs) <= 1:
         flash("There must be more that one song to generate a report")
         return redirect(url_for(f"{BASE}.summary"))
 
-    df = pd.DataFrame(parse_mongo(parsed_songs))
-
-    count_fig = sns.histplot(data=df, x="lyrics_count", hue="name", kde=True)
-    count_plot = create_plot_data(count_fig, "Number of lyrics")
-    distinct_fig = sns.histplot(data=df, x="distinct_count", hue="name", kde=True)
-    distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
+    count_plot = create_histogram(
+        parse_mongo(songs), "lyrics_count", "name", "Number of lyrics"
+    )
+    distinct_plot = create_histogram(
+        parse_mongo(songs), "distinct_count", "name", "Number of distinct lyrics"
+    )
+    # df = pd.DataFrame(parse_mongo(songs))
+    # count_fig = sns.histplot(data=df, x="lyrics_count", hue="name", kde=True)
+    # count_plot = create_plot_data(count_fig, "Number of lyrics")
+    # distinct_fig = sns.histplot(data=df, x="distinct_count", hue="name", kde=True)
+    # distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
 
     return render_template(
         f"{BASE}/plots.html",
-        artist=None,
-        plots=[count_plot, distinct_plot],
+        plots=[count_plot, distinct_plot]
     )
+
+
+@bp.route("/ready-count")
+def count_reports():
+    artists_collection = mongo_collection("artists")
+    count = artists_collection.count_documents({"ready": True})
+    return f"Reports: {count}"
+
+
+def create_histogram(
+        data: list[dict], metric_field: str, category_field: str, title: str
+) -> str:
+    df = pd.DataFrame(data)
+    fig = px.histogram(
+        df,
+        x=metric_field,
+        color=category_field,
+        marginal="violin",
+        hover_data=df.columns,
+        nbins=20,
+        barmode="overlay"
+    )
+
+    fig.update_layout(
+        title=title,
+    )
+
+    return fig.to_html(include_plotlyjs=True, full_html=False)
 
 
 def create_plot_data(figure, xlabel):

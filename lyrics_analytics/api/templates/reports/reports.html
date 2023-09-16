@@ -3,5 +3,19 @@
 {% block title %} Reports {% endblock %}
 
 {% block content %}
-hello world
+{% if summary_reports %}
+  <div class="m-2 mt-3 mb-3">Select up to 3 artists and generate a report</div>
+    <form method="post">
+        {% include 'reports/summary_table.html' %}
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-warning float-end">Generate Report</button>
+            </div>
+          </div>
+        </div>
+    </form>
+{% else %}
+    <div class="m-2 mt-3 mb-3">No reports ready yet :) have a <a href="{{ url_for('search.index') }}">search</a>!</div>
+{% endif %}
 {% endblock %}

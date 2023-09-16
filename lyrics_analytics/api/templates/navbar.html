@@ -15,11 +15,17 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
           <li class="nav-item">
-            <a class="nav-link disabled" aria-current="page" href="#">Features (Coming Soon)</a>
+            <a class="nav-link active" aria-current="page" href="{{ url_for('search.index') }}">Search</a>
           </li>
           {% if g.user %}
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ url_for('reports.summary') }}">Reports: {{ reports_ready }}</a>
+            <a class="nav-link active"
+               aria-current="page"
+               href="{{ url_for('reports.summary') }}"
+               hx-get="/reports/ready-count"
+               hx-trigger="every 5s, load">
+              Reports:
+            </a>
           </li>
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('auth.logout') }}">Log Out</a>

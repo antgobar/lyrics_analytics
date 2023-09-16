@@ -1,7 +1,6 @@
 from flask import Flask
 
 from lyrics_analytics.backend.worker import make_celery
-from lyrics_analytics.backend.db import mongo_collection
 from lyrics_analytics.config import Config, DevelopmentConfig
 
 
@@ -14,17 +13,9 @@ def create_app(test_config=None):
     celery_app.set_default()
 
     if test_config is None:
-        # load the instance config, if it exists, when not testing
         flask_app.config.from_pyfile("config.py", silent=True)
     else:
-        # load the test config if passed in
         flask_app.config.from_mapping(test_config)
-
-    @flask_app.context_processor
-    def inject_data():
-        artists_collection = mongo_collection("artists")
-        count = artists_collection.count_documents({"ready": True})
-        return dict(reports_ready=count)
 
     from lyrics_analytics.api.routes import reports
     from lyrics_analytics.api.routes import search
