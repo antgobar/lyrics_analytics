@@ -1,13 +1,13 @@
-from typing import Callable
 import logging
-from datetime import date
 from dataclasses import dataclass
+from datetime import date
+from typing import Callable
 
 import requests
-from requests.models import Response
 from dotenv import dotenv_values
+from requests.models import Response
 
-from lyrics_analytics.services.constants import TITLE_FILTERS, REPLACE_PATTERNS
+from lyrics_analytics.services.constants import REPLACE_PATTERNS, TITLE_FILTERS
 from lyrics_analytics.services.scraper import Scraper
 
 

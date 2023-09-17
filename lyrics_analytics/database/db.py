@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
 from typing import Any
-from bson import ObjectId
 
+from bson import ObjectId
 from pymongo import MongoClient
 
 from lyrics_analytics.config import Config
@@ -11,7 +11,7 @@ from lyrics_analytics.config import Config
 class MongoDb:
     _instance = None
 
-    def __new__(cls, uri):
+    def __new__(cls, uri: str) -> MongoClient:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         cls._instance = MongoClient(uri)
@@ -24,7 +24,7 @@ def mongo_collection(collection: str):
     return database[collection]
 
 
-def parse_mongo(result):
+def parse_mongo(result) -> dict | list[dict]:
     return json.loads(MongoJSONEncoder().encode(result))
 
 

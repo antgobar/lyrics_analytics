@@ -1,5 +1,5 @@
-from unittest.mock import MagicMock, patch
 from datetime import date
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -115,67 +115,69 @@ class TestGeniusService:
         assert test_instance.find_artists("Artist_a") == expected
         mock_search_artist.assert_called_with("Artist_a")
 
-    @patch("lyrics_analytics.services.genius.GeniusService._title_filter")
-    @patch("lyrics_analytics.services.genius.GeniusService._get_artist")
-    @patch("lyrics_analytics.services.genius.GeniusService._get_song_data")
-    @patch("lyrics_analytics.services.genius.GeniusService._get_artist_song_page")
-    def test_get_artist_songs(
-        self,
-        mock_get_artist_song_page,
-        mock_get_song_data,
-        mock_get_artist,
-        mock_title_filter,
-        mock_requests,
-        ping_is_true,
-    ):
-        mock_requests.get.return_value = ping_is_true
-        mock_get_artist_song_page.side_effect = [
-            {
-                "songs": [
-                    {
-                        "title": "some_title",
-                        "lyrics_state": "complete",
-                        "primary_artist": {"name": "artist A"},
-                    }
-                ],
-                "next_page": 1,
-            },
-            {
-                "songs": [
-                    {
-                        "title": "some_title",
-                        "lyrics_state": "complete",
-                        "primary_artist": {"name": "artist A"},
-                    }
-                ],
-                "next_page": None,
-            },
-        ]
-
-        mock_get_song_data.return_value = SongData(
-            name="Bob",
-            genius_artist_id="1",
-            genius_song_id="2",
-            title="My Song",
-            lyrics_count=10,
-            distinct_count=2,
-            album="my first album",
-            release_date=date(2022, 1, 1),
-        )
-
-        mock_get_artist.return_value = {"artist": {"name": "artist A"}}
-        mock_title_filter.return_value = True
-
-        test_instance = GeniusService("url", "apikey")
-
-        actual_song_data_gen = test_instance.get_artist_songs(1)
-
-        # for song_data, expected in zip(actual_song_data_gen, [{"song": "data"}, {"song": "data"}]):
-        #     assert song_data == expected
-        # mock_get_artist.assert_called_with(1)
-        # mock_title_filter.assert_called_with("some_title")
-        # mock_get_artist_song_page.assert_called_with(1, 2)
-        # mock_get_song_data.assert_called_with({"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}})
+    # @patch("lyrics_analytics.services.genius.GeniusService._title_filter")
+    # @patch("lyrics_analytics.services.genius.GeniusService._get_artist")
+    # @patch("lyrics_analytics.services.genius.GeniusService._get_song_data")
+    # @patch("lyrics_analytics.services.genius.GeniusService._get_artist_song_page")
+    # def test_get_artist_songs(
+    #     self,
+    #     mock_get_artist_song_page,
+    #     mock_get_song_data,
+    #     mock_get_artist,
+    #     mock_title_filter,
+    #     mock_requests,
+    #     ping_is_true,
+    # ):
+    #     mock_requests.get.return_value = ping_is_true
+    #     mock_get_artist_song_page.side_effect = [
+    #         {
+    #             "songs": [
+    #                 {
+    #                     "title": "some_title",
+    #                     "lyrics_state": "complete",
+    #                     "primary_artist": {"name": "artist A"},
+    #                 }
+    #             ],
+    #             "next_page": 1,
+    #         },
+    #         {
+    #             "songs": [
+    #                 {
+    #                     "title": "some_title",
+    #                     "lyrics_state": "complete",
+    #                     "primary_artist": {"name": "artist A"},
+    #                 }
+    #             ],
+    #             "next_page": None,
+    #         },
+    #     ]
+    #
+    #     mock_get_song_data.return_value = SongData(
+    #         name="Bob",
+    #         genius_artist_id="1",
+    #         genius_song_id="2",
+    #         title="My Song",
+    #         lyrics_count=10,
+    #         distinct_count=2,
+    #         album="my first album",
+    #         release_date=date(2022, 1, 1),
+    #     )
+    #
+    #     mock_get_artist.return_value = {"artist": {"name": "artist A"}}
+    #     mock_title_filter.return_value = True
+    #
+    #     test_instance = GeniusService("url", "apikey")
+    #
+    #     actual_song_data_gen = test_instance.get_artist_songs(1)
+    #
+    #     for song_data, expected in zip(actual_song_data_gen, [{"song": "data"}, {"song": "data"}]):
+    #         assert song_data == expected
+    #     mock_get_artist.assert_called_with(1)
+    #     mock_title_filter.assert_called_with("some_title")
+    #     mock_get_artist_song_page.assert_called_with(1, 2)
+    #     mock_get_song_data.assert_called_with(
+    #         {"title": "some_title", "lyrics_state": "complete", "primary_artist": {"name": "artist A"}}
+    #     )
 
     @patch("lyrics_analytics.services.genius.GeniusService._parse_date")
     @patch("lyrics_analytics.services.scraper.ScraperService.get_lyrics")

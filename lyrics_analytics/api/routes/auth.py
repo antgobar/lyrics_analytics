@@ -1,7 +1,6 @@
-import os
 import functools
+import os
 
-from bson.objectid import ObjectId
 from flask import (
     Blueprint,
     flash,
@@ -12,11 +11,12 @@ from flask import (
     session,
     url_for,
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 
-from lyrics_analytics.config import Config
-from lyrics_analytics.database.db import mongo_collection, parse_mongo
-
+from lyrics_analytics.database.queries import (
+    register_user_if_not_exists,
+    user_by_id,
+    user_is_authorised,
+)
 
 BASE = os.path.basename(__file__).split(".")[0]
 
@@ -30,20 +30,12 @@ def register():
 
     username = request.form["username"]
     password = request.form["password"]
-    user_collection = mongo_collection("users")
 
-    if user_collection.find_one({"username": username}):
-        flash(f"User {username} already exists")
-        return redirect(url_for(f"{BASE}.register"))
+    if register_user_if_not_exists(username, password):
+        return redirect(url_for("auth.login"))
 
-    user_collection.insert_one(
-        {
-            "username": username,
-            "password": generate_password_hash(password + Config.PEPPER),
-        }
-    )
-
-    return redirect(url_for("auth.login"))
+    flash(f"User {username} already exists")
+    return redirect(url_for(f"{BASE}.register"))
 
 
 @bp.route("/login", methods=("GET", "POST"))
@@ -53,30 +45,28 @@ def login():
 
     username = request.form["username"]
     password = request.form["password"]
-    user_collection = mongo_collection("users")
 
-    user = user_collection.find_one({"username": username})
+    user = user_is_authorised(username, password)
 
-    if not user or not check_password_hash(user["password"], password + Config.PEPPER):
-        flash(f"Incorrect username or password for {username}")
-        return render_template(f"{BASE}/login.html")
+    if user:
+        session.clear()
+        session["user_id"] = user["_id"]
+        return redirect(url_for("index"))
 
-    parsed_user = parse_mongo(user)
-
-    session.clear()
-    session["user_id"] = parsed_user["_id"]
-    return redirect(url_for("index"))
+    flash(f"Incorrect username or password for {username}")
+    return render_template(f"{BASE}/login.html")
 
 
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get("user_id")
-    user_collection = mongo_collection("users")
     if user_id is None:
         g.user = None
-    else:
-        user = user_collection.find_one({"_id": ObjectId(user_id)})
-        g.user = parse_mongo(user)
+        return None
+
+    user = user_by_id(user_id)
+    if user:
+        g.user = user_by_id(user_id)
 
 
 @bp.route("/logout")

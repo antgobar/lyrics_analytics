@@ -2,9 +2,9 @@ import os
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from lyrics_analytics.tasks.tasks import find_artists, artist_song_data
-from lyrics_analytics.database.db import mongo_collection
 from lyrics_analytics.api.routes.auth import login_required
+from lyrics_analytics.database.queries import artist_is_ready
+from lyrics_analytics.tasks.tasks import artist_song_data, find_artists
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__)
@@ -36,27 +36,14 @@ def search():
 @bp.route("/artist", methods=("GET", "POST"))
 def artist():
     if request.method == "POST":
-        return redirect(
-            url_for(f"{BASE}.search", name=request.form["artist-name"], use_cache=True)
-        )
+        return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"]))
 
     artist_id = request.args.get("id")
     name = request.args.get("name")
 
-    artists_collection = mongo_collection("artists")
-    artist_query = artists_collection.find_one({"genius_artist_id": artist_id})
+    if artist_is_ready(artist_id, name):
+        return redirect(url_for(f"reports.combined_reports", artist_ids=artist_id))
 
-    if artist_query is None:
-        artists_collection.insert_one(
-            {"genius_artist_id": artist_id, "name": name, "ready": False}
-        )
-        artist_song_data.delay(artist_id)
-        flash(f"Fetching lyric data for {name}, check reports later")
-        return render_template(f"{BASE}/index.html")
-
-    if artist_query["ready"]:
-        flash(f"Already fetched or fetching {name} lyrics data, reports ready")
-
-    else:
-        flash(f"Fetching {name} lyrics data,  check reports later")
+    artist_song_data.delay(artist_id)
+    flash(f"Fetching lyric data for {name}, check reports later")
     return render_template(f"{BASE}/index.html")

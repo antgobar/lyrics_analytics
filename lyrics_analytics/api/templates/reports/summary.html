@@ -4,7 +4,7 @@
 
 {% block content %}
 {% if summary_reports %}
-  <div class="m-2 mt-3 mb-3">Select up to 3 artists and generate a report</div>
+  <h3 class="m-2 mt-3 mb-3">Select between 1 and 3 artists to generate a report</h3>
     <form method="post">
         {% include 'reports/summary_table.html' %}
         <div class="container">
