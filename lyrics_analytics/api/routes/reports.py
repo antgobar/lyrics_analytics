@@ -1,24 +1,15 @@
-from base64 import b64encode
 import os
-from io import BytesIO
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import pandas as pd
-from matplotlib import pyplot as plt
 import plotly.express as px
-import seaborn as sns
 
 from lyrics_analytics.api.routes.auth import login_required
-from lyrics_analytics.backend.db import mongo_collection, parse_mongo
+from lyrics_analytics.database.db import mongo_collection, parse_mongo
 
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
-
-
-sns.set_style("dark")
-sns.light_palette("seagreen", as_cmap=True)
-sns.color_palette("Set2")
 
 
 @bp.route("/", methods=("GET", "POST"))
@@ -37,9 +28,8 @@ def summary():
                 "avg_lyrics": {"$avg": "$lyrics_count"},
                 "song_count": {"$sum": 1},
             }
-
         },
-        {"$sort": {"name": 1}}
+        {"$sort": {"name": 1}},
     ]
 
     artists = list(song_stats_collection.aggregate(pipeline))
@@ -59,7 +49,7 @@ def combined_reports():
         return redirect(url_for(f"{BASE}.summary"))
 
     song_stats_collection = mongo_collection("song_stats")
-    songs = song_stats_collection.find({"genius_artist_id": {'$in': artist_ids}})
+    songs = song_stats_collection.find({"genius_artist_id": {"$in": artist_ids}})
     songs = list(songs)
 
     if len(songs) <= 1:
@@ -67,21 +57,17 @@ def combined_reports():
         return redirect(url_for(f"{BASE}.summary"))
 
     count_plot = create_histogram(
-        parse_mongo(songs), "lyrics_count", "name", "Number of lyrics"
+        parse_mongo(songs), "lyrics_count", "name", "Number of lyrics", "Artist"
     )
     distinct_plot = create_histogram(
-        parse_mongo(songs), "distinct_count", "name", "Number of distinct lyrics"
+        parse_mongo(songs),
+        "distinct_count",
+        "name",
+        "Number of distinct lyrics",
+        "Artist",
     )
-    # df = pd.DataFrame(parse_mongo(songs))
-    # count_fig = sns.histplot(data=df, x="lyrics_count", hue="name", kde=True)
-    # count_plot = create_plot_data(count_fig, "Number of lyrics")
-    # distinct_fig = sns.histplot(data=df, x="distinct_count", hue="name", kde=True)
-    # distinct_plot = create_plot_data(distinct_fig, "Number of distinct lyrics")
 
-    return render_template(
-        f"{BASE}/plots.html",
-        plots=[count_plot, distinct_plot]
-    )
+    return render_template(f"{BASE}/plots.html", plots=[count_plot, distinct_plot])
 
 
 @bp.route("/ready-count")
@@ -92,7 +78,11 @@ def count_reports():
 
 
 def create_histogram(
-        data: list[dict], metric_field: str, category_field: str, title: str
+    data: list[dict],
+    metric_field: str,
+    category_field: str,
+    title: str,
+    category_label: str = "",
 ) -> str:
     df = pd.DataFrame(data)
     fig = px.histogram(
@@ -102,7 +92,11 @@ def create_histogram(
         marginal="violin",
         hover_data=df.columns,
         nbins=20,
-        barmode="overlay"
+        barmode="overlay",
+        labels={
+            category_field: f"{category_label} {category_field}",
+            metric_field: metric_field.replace("_", " ").title(),
+        },
     )
 
     fig.update_layout(
@@ -110,22 +104,3 @@ def create_histogram(
     )
 
     return fig.to_html(include_plotlyjs=True, full_html=False)
-
-
-def create_plot_data(figure, xlabel):
-    plt.xlabel(xlabel)
-    plt.ylabel("Frequency")
-    buffer = BytesIO()
-    figure.figure.savefig(buffer, format='png')
-    plt.clf()
-    return b64encode(buffer.getbuffer()).decode("ascii")
-
-
-@bp.route("/query")
-def query():
-    # song_stats_collection = mongo_collection("song_stats")
-    # song_stats_collection.update_many({"name": "Steel Panther"}, {"$set": {"genius_artist_id": "247279"}})
-    # song_stats_collection.update_many({"name": "Metallica"}, {"$set": {"genius_artist_id": "10662"}})
-    # song_stats_collection.update_many({"name": "Pantera"}, {"$set": {"genius_artist_id": "63725"}})
-    # song_stats_collection.delete_many({"album": {"$type": 10}})
-    return {"query": None}

@@ -1,20 +1,13 @@
 import os
-import json
 
-from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
-)
-from werkzeug.exceptions import abort
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from lyrics_analytics.backend.cache import CacheService
-from lyrics_analytics.backend.tasks import find_artists, artist_song_data
-from lyrics_analytics.backend.db import mongo_collection
+from lyrics_analytics.tasks.tasks import find_artists, artist_song_data
+from lyrics_analytics.database.db import mongo_collection
 from lyrics_analytics.api.routes.auth import login_required
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__)
-
-cache = CacheService(host=os.getenv("CACHE_HOST", "localhost"))
 
 
 @bp.route("/", methods=("GET", "POST"))
@@ -43,7 +36,9 @@ def search():
 @bp.route("/artist", methods=("GET", "POST"))
 def artist():
     if request.method == "POST":
-        return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"], use_cache=True))
+        return redirect(
+            url_for(f"{BASE}.search", name=request.form["artist-name"], use_cache=True)
+        )
 
     artist_id = request.args.get("id")
     name = request.args.get("name")
@@ -53,11 +48,7 @@ def artist():
 
     if artist_query is None:
         artists_collection.insert_one(
-            {
-                "genius_artist_id": artist_id,
-                "name": name,
-                "ready": False
-            }
+            {"genius_artist_id": artist_id, "name": name, "ready": False}
         )
         artist_song_data.delay(artist_id)
         flash(f"Fetching lyric data for {name}, check reports later")

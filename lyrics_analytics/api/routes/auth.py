@@ -3,12 +3,19 @@ import functools
 
 from bson.objectid import ObjectId
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from lyrics_analytics.config import Config
-from lyrics_analytics.backend.db import mongo_collection, parse_mongo
+from lyrics_analytics.database.db import mongo_collection, parse_mongo
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -16,7 +23,7 @@ BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
 
 
-@bp.route('/register', methods=("GET", "POST"))
+@bp.route("/register", methods=("GET", "POST"))
 def register():
     if request.method == "GET":
         return render_template(f"{BASE}/register.html")
@@ -30,7 +37,10 @@ def register():
         return redirect(url_for(f"{BASE}.register"))
 
     user_collection.insert_one(
-        {"username": username, "password": generate_password_hash(password + Config.PEPPER)}
+        {
+            "username": username,
+            "password": generate_password_hash(password + Config.PEPPER),
+        }
     )
 
     return redirect(url_for("auth.login"))

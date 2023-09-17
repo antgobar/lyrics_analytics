@@ -14,7 +14,7 @@ class Config:
     FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
     CELERY_CONFIG = {
         "broker_url": os.environ.get("BROKER_URL"),
-        "result_backend": os.environ.get("RESULT_BACKEND")
+        "result_backend": os.environ.get("RESULT_BACKEND"),
     }
     MONGO_URI = os.getenv("MONGO_URI")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")

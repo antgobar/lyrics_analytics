@@ -29,9 +29,9 @@ def parse_mongo(result):
 
 
 class MongoJSONEncoder(json.JSONEncoder):
-    def default(self, o: Any) -> Any:
-        if isinstance(o, ObjectId):
-            return str(o)
-        if isinstance(o, datetime):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        if isinstance(obj, datetime):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)

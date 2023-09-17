@@ -1,6 +1,6 @@
 from flask import Flask
 
-from lyrics_analytics.backend.worker import make_celery
+from lyrics_analytics.tasks.worker import make_celery
 from lyrics_analytics.config import Config, DevelopmentConfig
 
 
