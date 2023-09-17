@@ -3,11 +3,12 @@ import os
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from lyrics_analytics.api.routes.auth import login_required
-from lyrics_analytics.database.queries import artist_is_ready
+from lyrics_analytics.database.queries import SearchQueries
 from lyrics_analytics.tasks.tasks import artist_song_data, find_artists
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__)
+search_queries = SearchQueries()
 
 
 @bp.route("/", methods=("GET", "POST"))
@@ -41,7 +42,7 @@ def artist():
     artist_id = request.args.get("id")
     name = request.args.get("name")
 
-    if artist_is_ready(artist_id, name):
+    if search_queries.artist_is_ready(artist_id, name):
         return redirect(url_for(f"reports.combined_reports", artist_ids=artist_id))
 
     artist_song_data.delay(artist_id)

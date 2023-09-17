@@ -12,15 +12,12 @@ from flask import (
     url_for,
 )
 
-from lyrics_analytics.database.queries import (
-    register_user_if_not_exists,
-    user_by_id,
-    user_is_authorised,
-)
+from lyrics_analytics.database.queries import AuthQueries
 
 BASE = os.path.basename(__file__).split(".")[0]
 
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
+auth_queries = AuthQueries()
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -31,7 +28,7 @@ def register():
     username = request.form["username"]
     password = request.form["password"]
 
-    if register_user_if_not_exists(username, password):
+    if auth_queries.register_user_if_not_exists(username, password):
         return redirect(url_for("auth.login"))
 
     flash(f"User {username} already exists")
@@ -46,7 +43,7 @@ def login():
     username = request.form["username"]
     password = request.form["password"]
 
-    user = user_is_authorised(username, password)
+    user = auth_queries.user_is_authorised(username, password)
 
     if user:
         session.clear()
@@ -64,9 +61,9 @@ def load_logged_in_user():
         g.user = None
         return None
 
-    user = user_by_id(user_id)
+    user = auth_queries.user_by_id(user_id)
     if user:
-        g.user = user_by_id(user_id)
+        g.user = user
 
 
 @bp.route("/logout")
