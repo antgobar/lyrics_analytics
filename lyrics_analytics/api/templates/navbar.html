@@ -22,8 +22,8 @@
             <a class="nav-link active"
                aria-current="page"
                href="{{ url_for('reports.summary') }}"
-               hx-get="/reports/ready-count"
-               hx-trigger="every 5s, load">
+               hx-get="{{ url_for('reports.count_ready_artists') }}"
+               hx-trigger="every 10s, load">
               Reports:
             </a>
           </li>
@@ -39,6 +39,11 @@
           </li>
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('auth.login') }}">Log In</a>
+          </li>
+          {% endif %}
+          {% if g.user["role"] == "admin" %}
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{{ url_for('admin.user_control') }}">Admin</a>
           </li>
           {% endif %}
         </ul>

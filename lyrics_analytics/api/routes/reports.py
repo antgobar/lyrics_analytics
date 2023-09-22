@@ -19,8 +19,7 @@ def summary():
         artist_ids = request.form.getlist("row_checkbox")
         return redirect(url_for(f"{BASE}.combined_reports", artist_ids=artist_ids))
     return render_template(
-        f"{BASE}/summary.html",
-        summary_reports=report_queries.artist_summary()
+        f"{BASE}/summary.html", summary_reports=report_queries.artist_lyrics_distribution()
     )
 
 
@@ -54,5 +53,6 @@ def combined_reports():
 
 
 @bp.route("/ready-count")
-def count_reports():
+@login_required
+def count_ready_artists():
     return f"Reports: {report_queries.count_ready_artists()}"

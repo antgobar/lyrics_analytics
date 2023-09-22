@@ -5,11 +5,11 @@
 {% block content %}
 <div class="container">
     <div class="row mb-1">
-    {% for plot in plots %}
-        <div class="col-md-6 p-1">
-            {{ plot | safe }}
-        </div>
-    {% endfor %}
+        {% for plot in plots %}
+            <div class="col-md-6 p-1">
+                {{ plot | safe }}
+            </div>
+        {% endfor %}
     </div>
 </div>
 <div class="mb-2">

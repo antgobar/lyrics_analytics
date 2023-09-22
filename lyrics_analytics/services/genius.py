@@ -2,12 +2,16 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from typing import Callable
+import time
 
 import requests
-from dotenv import dotenv_values
 from requests.models import Response
 
-from lyrics_analytics.services.constants import REPLACE_PATTERNS, TITLE_FILTERS
+from lyrics_analytics.services.constants import (
+    REPLACE_PATTERNS,
+    TITLE_FILTERS,
+    SLEEP_LENGTH,
+)
 from lyrics_analytics.services.scraper import Scraper
 
 
@@ -30,8 +34,6 @@ class SongData:
 class GeniusService:
     def __init__(self, _base_url: str, access_token: str, healthcheck=True) -> None:
         self._base_url = _base_url
-        if access_token is None:
-            access_token = dotenv_values(".env").get("GENIUS_CLIENT_ACCESS_TOKEN")
         self._base_params = {"access_token": access_token}
         self.titles = []
         self.artist_data = None
@@ -72,18 +74,6 @@ class GeniusService:
             artist_data = hit_result["result"]["primary_artist"]
             return {"id": artist_data["id"], "name": artist_data["name"]}
 
-    def find_artists(self, artist_name: str) -> list[dict] | None:
-        response = self._search_artist(artist_name)
-        if response is None:
-            logging.info(f"Not found: {artist_name}")
-            return []
-        artists_found = [
-            self._find_artists_iter(result, artist_name) for result in response["hits"]
-        ]
-        artists_found = [found for found in artists_found if found is not None]
-
-        return list({artist["id"]: artist for artist in artists_found}.values())
-
     @handle_response
     def _get_artist_song_page(self, artist_id: str, page_no: int) -> Response or dict:
         url = f"{self._base_url}/artists/{artist_id}/songs"
@@ -101,6 +91,18 @@ class GeniusService:
     def _get_song(self, song_id):
         url = f"{self._base_url}/songs/{song_id}"
         return requests.get(url, params=self._base_params)
+
+    def find_artists(self, artist_name: str) -> list[dict] | None:
+        response = self._search_artist(artist_name)
+        if response is None:
+            logging.info(f"Not found: {artist_name}")
+            return []
+        artists_found = [
+            self._find_artists_iter(result, artist_name) for result in response["hits"]
+        ]
+        artists_found = [found for found in artists_found if found is not None]
+
+        return list({artist["id"]: artist for artist in artists_found}.values())
 
     def get_artist_data(self, artist_id: str):
         self.artist_data = self._get_artist(artist_id)["artist"]
@@ -137,6 +139,7 @@ class GeniusService:
                 break
 
             page_no += 1
+            time.sleep(SLEEP_LENGTH)
 
         self.titles = []
 
@@ -151,7 +154,13 @@ class GeniusService:
 
     @staticmethod
     def _parse_album(album_data: dict) -> str | None:
-        return album_data if album_data is None else album_data.get("name")
+        name = album_data if album_data is None else album_data.get("name")
+        if name is None:
+            return None
+        for to_filter in TITLE_FILTERS:
+            if to_filter.lower() in name.lower():
+                return None
+        return name
 
     def _get_song_data(self, song_response: dict) -> SongData:
         song = self._get_song(song_response["id"])["song"]

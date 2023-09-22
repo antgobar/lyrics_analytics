@@ -13,3 +13,4 @@ TITLE_FILTERS = (
     "discography",
 )
 REPLACE_PATTERNS = ("\u2014",)
+SLEEP_LENGTH = 0.2

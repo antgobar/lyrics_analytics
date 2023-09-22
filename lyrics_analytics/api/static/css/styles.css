@@ -1,0 +1,9 @@
+.spinner{
+    display:none;
+}
+.htmx-request .spinner{
+    display:inline;
+}
+.htmx-request.spinner{
+    display:inline;
+}

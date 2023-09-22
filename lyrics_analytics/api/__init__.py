@@ -2,9 +2,13 @@ from flask import Flask
 
 from lyrics_analytics.config import Config, DevelopmentConfig
 from lyrics_analytics.tasks.worker import make_celery
+from lyrics_analytics.database.queries import AdminQueries
 
 
 def create_app(test_config=None):
+    admin_queries = AdminQueries()
+    admin_queries.create_admin()
+
     flask_app = Flask(__name__, instance_relative_config=True)
     flask_app.config.from_object(DevelopmentConfig)
     flask_app.secret_key = Config.FLASK_SECRET_KEY

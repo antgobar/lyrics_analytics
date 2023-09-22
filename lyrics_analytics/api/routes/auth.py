@@ -81,3 +81,17 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+
+def admin_only(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for(f"{BASE}.login"))
+
+        if not auth_queries.user_is_admin(g.user["username"]):
+            return redirect(url_for(f"search.index"))
+
+        return view(**kwargs)
+
+    return wrapped_view

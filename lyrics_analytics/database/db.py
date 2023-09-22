@@ -4,8 +4,12 @@ from typing import Any
 
 from bson import ObjectId
 from pymongo import MongoClient
+from pymongo.results import BulkWriteResult, DeleteResult, InsertManyResult, InsertOneResult, UpdateResult
 
 from lyrics_analytics.config import Config
+
+
+TO_SERIALISE = [ObjectId, datetime, BulkWriteResult, DeleteResult, InsertManyResult, InsertOneResult, UpdateResult]
 
 
 class MongoDb:
@@ -18,20 +22,22 @@ class MongoDb:
         return cls._instance
 
 
-def mongo_collection(collection: str):
-    client = MongoDb(Config.MONGO_URI)
-    database = client["lyrics_analytics"]
-    return database[collection]
-
-
 def parse_mongo(result) -> dict | list[dict]:
     return json.loads(MongoJSONEncoder().encode(result))
 
 
 class MongoJSONEncoder(json.JSONEncoder):
     def default(self, obj: Any) -> Any:
-        if isinstance(obj, ObjectId):
-            return str(obj)
-        if isinstance(obj, datetime):
-            return str(obj)
+        for serialise_object in TO_SERIALISE:
+            if isinstance(obj, serialise_object):
+                return str(obj)
         return json.JSONEncoder.default(self, obj)
+
+
+class DbClient:
+    def __init__(self):
+        client = MongoDb(Config.MONGO_URI)
+        self.database = client["lyrics_analytics"]
+
+    def collection(self, collection_name):
+        return self.database[collection_name]

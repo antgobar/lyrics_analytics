@@ -20,7 +20,16 @@ def index():
     return redirect(url_for(f"{BASE}.search", name=name))
 
 
+@bp.route("/search", methods=("POST", ))
+@login_required
+def search_artist():
+    name = request.form["artist-name"]
+    artists = find_artists.delay(name).get()
+    return render_template(f"{BASE}/results.html", artists=artists, searched=name)
+
+
 @bp.route("/search", methods=("GET", "POST"))
+@login_required
 def search():
     if request.method == "POST":
         return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"]))
@@ -35,6 +44,7 @@ def search():
 
 
 @bp.route("/artist", methods=("GET", "POST"))
+@login_required
 def artist():
     if request.method == "POST":
         return redirect(url_for(f"{BASE}.search", name=request.form["artist-name"]))

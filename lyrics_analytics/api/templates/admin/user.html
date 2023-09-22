@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %} Admin {% endblock %}
+{% block content %}
+<div class="text-light">
+    <h3>Editing user: {{ user.username }}</h3>
+<form action="" method="post">
+    <label for="firstname">Role</label>
+    <input type="text" id="firstname" name="fname" placeholder="{{ user.role }}">
+    <label for="lastname">Status</label>
+    <input type="text" id="lastname" name="lname" placeholder="{{ user.active }}">
+    <button type="submit">Update</button>
+</form>
+</div>
+
+{% endblock %}
