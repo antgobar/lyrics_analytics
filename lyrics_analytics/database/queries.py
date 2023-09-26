@@ -7,16 +7,12 @@ from lyrics_analytics.database.db import DbClient, parse_mongo
 
 
 client = DbClient()
-artists_collection = client.collection("artists")
-songs_collection = client.collection("songs")
-searches_collection = client.collection("searches")
-users_collection = client.collection("users")
 
 
 class ReportsQueries:
     def __init__(self):
-        self.artists_collection = artists_collection
-        self.songs_collection = songs_collection
+        self.artists_collection = client.collection("artists")
+        self.songs_collection = client.collection("songs")
 
     def count_ready_artists(self):
         return self.artists_collection.count_documents({"ready": True})
@@ -65,10 +61,10 @@ class ReportsQueries:
 
 class AuthQueries:
     def __init__(self):
-        self.users_collection = users_collection
+        self.users_collection = client.collection("users")
 
     def user_by_id(self, user_id: str) -> dict | None:
-        user = self.users_collection.find_one({"_id": ObjectId(user_id), "active": True})
+        user = self.users_collection.find_one({"_id": ObjectId(user_id), "is_active": True})
         if user:
             return parse_mongo(user)
         return None
@@ -82,7 +78,7 @@ class AuthQueries:
                 "username": username,
                 "password": generate_password_hash(password + Config.PEPPER),
                 "role": "user",
-                "active": True
+                "is_active": True
             }
         )
 
@@ -105,7 +101,7 @@ class AuthQueries:
 
 class SearchQueries:
     def __init__(self):
-        self.artists_collection = artists_collection
+        self.artists_collection = client.collection("artists")
 
     def artist_is_ready(self, artist_id: str, artist_name: str) -> bool:
         artist = self.artists_collection.find_one({"genius_artist_id": artist_id})
@@ -123,9 +119,9 @@ class SearchQueries:
 
 class TaskQueries:
     def __init__(self):
-        self.searches_collection = searches_collection
-        self.songs_collection = songs_collection
-        self.artists_collection = artists_collection
+        self.searches_collection = client.collection("searches")
+        self.songs_collection = client.collection("songs")
+        self.artists_collection = client.collection("artists")
 
     def artist_previously_searched(self, artist_name: str) -> dict | None:
         return self.searches_collection.find_one({"search_name": artist_name})
@@ -153,34 +149,41 @@ class TaskQueries:
 
 class AdminQueries:
     def __init__(self):
-        self.users_collection = users_collection
+        self.users_collection = client.collection("users")
 
     def get_users(self):
         users = self.users_collection.find(
             {"username": {"$ne": "admin"}},
-            {"_id": 1, "username": 1, "role": 1, "active": 1}
+            {"_id": 1, "username": 1, "role": 1, "is_active": 1}
         )
         return parse_mongo(list(users))
 
     def get_user(self, user_id: str):
         user = self.users_collection.find_one(
             {"_id": ObjectId(user_id)},
-            {"_id": 1, "username": 1, "role": 1, "active": 1}
+            {"_id": 1, "username": 1, "role": 1, "is_active": 1}
         )
         return parse_mongo(user)
+
+    def update_user(self, user_id: str, role: str, status: bool):
+        response = self.users_collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"role": role, "is_active": status}}
+        )
+        return parse_mongo(response)
 
     def create_admin(self):
         admin = self.users_collection.find_one(
             {"username": "admin", "role": "admin"},
-            {"username": 1, "role": 1, "active": 1}
+            {"username": 1, "role": 1, "is_active": 1}
         )
 
-        if not list(admin):
+        if not admin:
             self.users_collection.insert_one(
                 {
                     "username": "admin",
                     "password": generate_password_hash("admin" + Config.PEPPER),
                     "role": "admin",
-                    "active": True
+                    "is_active": True
                 }
             )

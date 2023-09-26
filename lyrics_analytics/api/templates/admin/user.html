@@ -3,13 +3,28 @@
 {% block content %}
 <div class="text-light">
     <h3>Editing user: {{ user.username }}</h3>
-<form action="" method="post">
-    <label for="firstname">Role</label>
-    <input type="text" id="firstname" name="fname" placeholder="{{ user.role }}">
-    <label for="lastname">Status</label>
-    <input type="text" id="lastname" name="lname" placeholder="{{ user.active }}">
-    <button type="submit">Update</button>
-</form>
+    <form action="" method="post">
+        <label for="role-select">Role</label>
+        <select name="user-role" id="role-select">
+            {% for role in roles %}
+            {% if role == user.role %}
+            <option value="{{ user.role }}" selected>{{ user.role }}</option>
+            {% else %}
+            <option value="{{ role }}">{{ role }}</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+
+
+        <label for="user-active">User active status</label>
+        {% if user.is_active %}
+        <input type="checkbox" id="user-active" name="user-active" checked>
+        {% else %}
+        <input type="checkbox" id="user-active" name="user-active">
+        {% endif %}
+
+        <button type="submit">Update</button>
+    </form>
 </div>
 
 {% endblock %}

@@ -41,10 +41,12 @@
             <a class="nav-link active" aria-current="page" href="{{ url_for('auth.login') }}">Log In</a>
           </li>
           {% endif %}
+          {% if g.user %}
           {% if g.user["role"] == "admin" %}
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('admin.user_control') }}">Admin</a>
           </li>
+          {% endif %}
           {% endif %}
         </ul>
       </div>

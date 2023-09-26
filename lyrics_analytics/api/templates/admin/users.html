@@ -17,7 +17,7 @@
         <tr>
             <td>{{ user.username }}</td>
             <td>{{ user.role }}</td>
-            <td>{{ user.active }}</td>
+            <td>{{ user.is_active }}</td>
             <td>
                 <a href="{{ url_for('admin.edit_user', user_id=user._id) }}" class="btn btn-danger">
                     Edit

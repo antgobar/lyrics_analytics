@@ -45,13 +45,17 @@ def login():
 
     user = auth_queries.user_is_authorised(username, password)
 
-    if user:
-        session.clear()
-        session["user_id"] = user["_id"]
-        return redirect(url_for("index"))
+    if not user:
+        flash(f"Incorrect username or password for {username}")
+        return render_template(f"{BASE}/login.html")
 
-    flash(f"Incorrect username or password for {username}")
-    return render_template(f"{BASE}/login.html")
+    session.clear()
+    session["user_id"] = user["_id"]
+
+    if user["role"] == "admin":
+        return redirect(url_for(f"admin.user_control"))
+
+    return redirect(url_for("search.index"))
 
 
 @bp.before_app_request
@@ -69,7 +73,7 @@ def load_logged_in_user():
 @bp.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("index"))
+    return redirect(url_for("search.index"))
 
 
 def login_required(view):
