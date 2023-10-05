@@ -11,7 +11,13 @@
                 {% for artist in artists %}
                     <tr>
                         <td>{{ artist.name }}</td>
-                        <td><a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-warning">Fetch</a></td>
+                        <td>
+                            <a hx-get="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}"
+                               hx-swap="outerHTML"
+                               class="btn btn-warning">
+                                Fetch
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

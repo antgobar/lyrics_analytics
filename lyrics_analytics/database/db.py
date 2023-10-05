@@ -4,12 +4,26 @@ from typing import Any
 
 from bson import ObjectId
 from pymongo import MongoClient
-from pymongo.results import BulkWriteResult, DeleteResult, InsertManyResult, InsertOneResult, UpdateResult
+from pymongo.results import (
+    BulkWriteResult,
+    DeleteResult,
+    InsertManyResult,
+    InsertOneResult,
+    UpdateResult,
+)
 
 from lyrics_analytics.config import Config
 
 
-TO_SERIALISE = [ObjectId, datetime, BulkWriteResult, DeleteResult, InsertManyResult, InsertOneResult, UpdateResult]
+TO_SERIALISE = [
+    ObjectId,
+    datetime,
+    BulkWriteResult,
+    DeleteResult,
+    InsertManyResult,
+    InsertOneResult,
+    UpdateResult,
+]
 
 
 class MongoDb:
@@ -37,7 +51,7 @@ class MongoJSONEncoder(json.JSONEncoder):
 class DbClient:
     def __init__(self):
         client = MongoDb(Config.MONGO_URI)
-        self.database = client["lyrics_analytics"]
+        self.database = client[Config.DATABASE_NAME]
 
     def collection(self, collection_name):
         return self.database[collection_name]

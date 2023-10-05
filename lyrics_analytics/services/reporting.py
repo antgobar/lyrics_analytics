@@ -32,33 +32,3 @@ def create_histogram(
 
     return fig.to_html(include_plotlyjs=True, full_html=False)
 
-
-def dummy_plot():
-    fig = px.scatter(x=[0, 1, 2, 3, 4], y=[0, 1, 4, 9, 16])
-    return fig.to_html(include_plotlyjs=True, full_html=False)
-
-
-def album_distribution(): ...
-
-"""
-df=pd.DataFrame(collection.find({}))
-df['release_date'] = pd.to_datetime(df['release_date'])
-
-# Group the DataFrame by the "album" column
-album_grouped = df.groupby('album')
-
-# Define a dictionary to specify the aggregation functions for each column
-agg_functions = {
-    'name': 'first',
-    'release_date': 'max',             # Latest release date
-    'lyrics_count': 'mean',            # Average lyrics count
-    'distinct_count': 'mean'         # Average distinct count
-}
-
-# Use the agg method to apply aggregation functions to each column
-album_info = album_grouped.agg(agg_functions)
-
-# Reset the index to have "album" as a regular column
-album_info.reset_index(inplace=True)
-album_info
-"""

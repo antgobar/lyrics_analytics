@@ -1,10 +1,6 @@
 <nav class="navbar navbar-dark bg-warning navbar-expand-lg">
   <div class="container-fluid">
-    {% if g.user %}
-      <a class="navbar-brand text-dark" href="{{ url_for('search.index') }}">{{ g.user['username'] }}'s {{ APP_NAME }}</a>
-    {% else %}
-      <a class="navbar-brand text-dark" href="{{ url_for('search.index') }}">{{ APP_NAME }}</a>
-    {% endif %}
+    <a class="navbar-brand text-dark" href="{{ url_for('search.index') }}">{{ APP_NAME }}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -14,23 +10,29 @@
       </div>
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+          {% if g.user %}
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('search.index') }}">Search</a>
           </li>
-          {% if g.user %}
           <li class="nav-item">
             <a class="nav-link active"
                aria-current="page"
-               href="{{ url_for('reports.summary') }}"
+               href="{{ url_for('reports.summary_report') }}"
                hx-get="{{ url_for('reports.count_ready_artists') }}"
                hx-trigger="every 10s, load">
               Reports:
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="">{{ g.user["username"] }}'s profile</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('auth.logout') }}">Log Out</a>
           </li>
           {% else %}
+          <li class="nav-item">
+            <a class="nav-link disabled" aria-current="page" href="#">Search</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link disabled" aria-current="page" href="#">Reports</a>
           </li>

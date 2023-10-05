@@ -20,6 +20,10 @@ class Config:
     MONGO_URI = os.getenv("MONGO_URI")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
     PEPPER = os.getenv("PEPPER")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+    GENIUS_BASE_URL = os.getenv("GENIUS_BASE_URL")
+    DATABASE_NAME = os.getenv("DATABASE_NAME", "LyricStats")
+    MONGO_URI_PROD = os.getenv("MONGO_URI_PROD")
 
 
 class DevelopmentConfig(Config):

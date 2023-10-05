@@ -12,30 +12,37 @@ bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
 report_queries = ReportsQueries()
 
 
-@bp.route("/", methods=("GET", "POST"))
+@bp.route("/", methods=("GET",))
 @login_required
-def summary():
-    if request.method == "POST":
-        artist_ids = request.form.getlist("row_checkbox")
-        return redirect(url_for(f"{BASE}.combined_reports", artist_ids=artist_ids))
+def summary_report():
+    sumamry_reports, no_data_artists = report_queries.artist_lyrics_distribution()
     return render_template(
-        f"{BASE}/summary.html", summary_reports=report_queries.artist_lyrics_distribution()
+        f"{BASE}/summary.html",
+        summary_reports=sumamry_reports,
+        no_data_artists=no_data_artists
     )
 
 
-@bp.route("/plots")
+@bp.route("/", methods=("POST",))
+@login_required
+def generate_report():
+    artist_ids = request.form.getlist("row_checkbox")
+    return redirect(url_for(f"{BASE}.combined_reports", artist_ids=artist_ids))
+
+
+@bp.route("/plots", methods=("GET",))
 @login_required
 def combined_reports():
     artist_ids = request.args.getlist("artist_ids")
     no_selected_artists = len(artist_ids)
     if not (1 <= no_selected_artists <= 3):
-        flash(f"Select between 1 and 3 artists, you've selected {no_selected_artists}")
+        flash(f"Select between 1 and 3 artists, you've selected {no_selected_artists}", category="warning")
         return redirect(url_for(f"{BASE}.summary"))
 
     songs = report_queries.songs_data(artist_ids)
 
     if len(songs) <= 1:
-        flash("There must be more that one song to generate a report")
+        flash("There must be more that one song to generate a report", category="warning")
         return redirect(url_for(f"{BASE}.summary"))
 
     count_plot = create_histogram(

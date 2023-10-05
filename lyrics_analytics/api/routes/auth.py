@@ -31,7 +31,7 @@ def register():
     if auth_queries.register_user_if_not_exists(username, password):
         return redirect(url_for("auth.login"))
 
-    flash(f"User {username} already exists")
+    flash(f"User {username} already exists", category="warning")
     return redirect(url_for(f"{BASE}.register"))
 
 
@@ -46,14 +46,14 @@ def login():
     user = auth_queries.user_is_authorised(username, password)
 
     if not user:
-        flash(f"Incorrect username or password for {username}")
+        flash(f"Incorrect username or password for {username}", category="danger")
         return render_template(f"{BASE}/login.html")
 
     session.clear()
     session["user_id"] = user["_id"]
 
     if user["role"] == "admin":
-        return redirect(url_for(f"admin.user_control"))
+        return redirect(url_for("admin.user_control"))
 
     return redirect(url_for("search.index"))
 
@@ -76,10 +76,19 @@ def logout():
     return redirect(url_for("search.index"))
 
 
+def handle_user_session():
+    try:
+        return g.user
+    except AttributeError:
+        flash("Session lost...", "warning")
+        return redirect(url_for("auth.logout"))
+
+
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if g.user is None:
+        user = handle_user_session()
+        if user is None:
             return redirect(url_for(f"{BASE}.login"))
 
         return view(**kwargs)
@@ -90,11 +99,13 @@ def login_required(view):
 def admin_only(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if g.user is None:
+        user = handle_user_session()
+
+        if user is None:
             return redirect(url_for(f"{BASE}.login"))
 
         if not auth_queries.user_is_admin(g.user["username"]):
-            return redirect(url_for(f"search.index"))
+            return redirect(url_for("search.index"))
 
         return view(**kwargs)
 

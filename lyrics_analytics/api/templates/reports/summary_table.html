@@ -2,7 +2,6 @@
     <thead>
         <tr>
             <th>Artist</th>
-            <th>Average lyrics per song</th>
             <th>Song count</th>
             <th>Select Artist</th>
         </tr>
@@ -10,17 +9,18 @@
     <tbody>
         {% for summary in summary_reports %}
         <tr>
-            <td>{{ summary.name }}</td>
-            <td>{{ summary.avg_lyrics | int }}</td>
+            <td>{% include 'reports/summary_item_details.html' %}</td>
             <td>{{ summary.song_count | int }}</td>
             <td>
-                {% if summary.ready %}
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="{{ summary._id }}" id="flexCheckDefault" name="row_checkbox">
-                        <label class="form-check-label" for="flexCheckDefault"></label>
-                    </div>
-                {% else %}
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching ...
+                {% if summary.status == 'success' %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="{{ summary._id }}" id="flexCheckDefault" name="row_checkbox">
+                    <label class="form-check-label" for="flexCheckDefault"></label>
+                </div>
+                {% elif summary.status == 'pending' %}
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Fetching ...
+                {% elif summary.status == 'failure' %}
+                No data
                 {% endif %}
             </td>
         </tr>
