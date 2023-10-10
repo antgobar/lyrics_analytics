@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Transform: AWS::Serverless-2016-10-31
+
+Description: |
+  A short description of the project
+
+Parameters:
+
+  SomeParam:
+    Description: SomeParam
+    Type: String
+
+  SomeApiKey:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: some-default-key
+
+
+Resources:
+
+  Lambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/
+      Handler: module.lambda_handler
+      Runtime: python3.10
+      Tracing: Active
+      AutoPublishAlias: live
+      Events:
+        SqsEvent:
+          Type: SQS
+          Properties:
+            BatchSize: 1
+            Queue: !GetAtt Queue.Arn
+      Environment:
+        Variables:
+          SOME_PARAM: !Ref SomeParam
+          SOME_KEY: !Ref SomeApiKey
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !ImportValue DeviceEvents-Table
+
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${Lambda}'
+      RetentionInDays: 30
+
+  MySQSQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: sqs:SendMessage
+            Resource: !GetAtt Queue.Arn
+
+      Queues:
+        - !Ref Queue
+
+  Queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+        maxReceiveCount: 5
+
+  DeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 3600 # An hour.
+
+  ReadCredentialsSecretPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'secretsmanager:GetSecretValue'
+            Resource:
+              - !GetAtt SystemUser.TokenSecretArn
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: !GetAtt SystemUser.TokenSecretKmsKeyArn
+      PolicyName: ReadCredentialsSecret
+      Roles:
+        - !Ref LambdaRole

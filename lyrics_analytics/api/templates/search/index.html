@@ -5,35 +5,23 @@
 {% block content %}
 <div class="container mt-3 text-center">
   {% include 'logo.html' %}
-  <form method="post" class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center" onsubmit="submitForm()">
+  <form method="post" class="mt-1 row row-cols-lg-auto g-3 justify-content-md-center"
+        id="search-form"
+        hx-post="{{ url_for('search.search_artist') }}"
+        hx-target="#search-results"
+        hx-trigger="submit"
+        hx-replace-url="true"
+        >
     <div>
-      <label class="visually-hidden" for="artist-name">Artist Name</label>
       <input type="text" class="form-control" id="artist-name" name="artist-name" placeholder="Search Artist" required>
     </div>
     <div class="mt-3">
-      <button id="search-button" type="submit" class="btn btn-warning text-dark">Search</button>
+      <button id="search-button" type="submit" class="btn btn-warning text-dark">
+        Search
+      </button>
     </div>
   </form>
 </div>
-<div class="text-center mt-4">
-  {% if artists %}
-    <table class="table">
-      <thead>
-          <tr>
-              <th>Artist Name</th>
-              <th></th>
-          </tr>
-      </thead>
-      <tbody>
-          {% for artist in artists %}
-          <tr>
-              <td>{{ artist.name }}</td>
-              <td><a href="{{ url_for('search.artist', name=artist['name'], id=artist['id']) }}" class="btn btn-warning">Get Data</a></td>
-          </tr>
-          {% endfor %}
-      </tbody>
-    </table>
-  {% endif %}
-</div>
+<div class="text-center mt-4" id="search-results"></div>
 <script src="{{ url_for('static', filename='js/search-button.js') }}"></script>
 {% endblock %}

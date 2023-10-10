@@ -1,10 +1,6 @@
 <nav class="navbar navbar-dark bg-warning navbar-expand-lg">
   <div class="container-fluid">
-    {% if g.user %}
-      <a class="navbar-brand text-dark" href="{{ url_for('search.index') }}">{{ g.user['username'] }}'s {{ APP_NAME }}</a>
-    {% else %}
-      <a class="navbar-brand text-dark" href="{{ url_for('search.index') }}">{{ APP_NAME }}</a>
-    {% endif %}
+    <a class="navbar-brand text-dark" href="{{ url_for('search.index') }}">{{ APP_NAME }}</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -14,17 +10,29 @@
       </div>
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-          <li class="nav-item">
-            <a class="nav-link disabled" aria-current="page" href="#">Features (Coming Soon)</a>
-          </li>
           {% if g.user %}
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ url_for('reports.summary') }}">Reports: {{ reports_ready }}</a>
+            <a class="nav-link active" aria-current="page" href="{{ url_for('search.index') }}">Search</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active"
+               aria-current="page"
+               href="{{ url_for('reports.summary_report') }}"
+               hx-get="{{ url_for('reports.count_ready_artists') }}"
+               hx-trigger="every 10s, load">
+              Reports:
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{{ url_for('user.dashboard', username=g.user['username']) }}">{{ g.user["username"] }}'s profile</a>
           </li>
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('auth.logout') }}">Log Out</a>
           </li>
           {% else %}
+          <li class="nav-item">
+            <a class="nav-link disabled" aria-current="page" href="#">Search</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link disabled" aria-current="page" href="#">Reports</a>
           </li>
@@ -34,6 +42,13 @@
           <li class="nav-item">
             <a class="nav-link active" aria-current="page" href="{{ url_for('auth.login') }}">Log In</a>
           </li>
+          {% endif %}
+          {% if g.user %}
+          {% if g.user["role"] == "admin" %}
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{{ url_for('admin.user_control') }}">Admin</a>
+          </li>
+          {% endif %}
           {% endif %}
         </ul>
       </div>

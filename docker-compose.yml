@@ -12,7 +12,6 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - worker
       - redis
       - mongo
     restart: unless-stopped

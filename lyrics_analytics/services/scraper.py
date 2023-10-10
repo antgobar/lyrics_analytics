@@ -1,14 +1,13 @@
-import re
 import logging
+import re
 
 import requests
 from bs4 import BeautifulSoup
 
+from lyrics_analytics.services.constants import REPLACE_CHARS
 
-REPLACE_CHARS = ("\n", ",", ".", "(", ")", "/", "\"", "\\", "-")
 
-
-class ScraperService:
+class Scraper:
     @classmethod
     def get_lyrics(cls, url: str) -> str:
         raw_lyrics = cls.scrape(url)
@@ -18,7 +17,7 @@ class ScraperService:
     @staticmethod
     def scrape(url: str) -> str:
         page = requests.get(url)
-        page_content = page.content.decode().replace('<br/>', '\n').encode()
+        page_content = page.content.decode().replace("<br/>", "\n").encode()
         html = BeautifulSoup(page_content, "html.parser")
         div = html.find("div", class_=re.compile("^lyrics$|Lyrics__Root"))
         if div is None:
@@ -33,8 +32,8 @@ class ScraperService:
 
     @classmethod
     def clean(cls, lyrics: str) -> str:
-        lyrics = re.sub(r'(\[.*?])*', '', lyrics)
-        lyrics = re.sub('\n{2}', '\n', lyrics)
+        lyrics = re.sub(r"(\[.*?])*", "", lyrics)
+        lyrics = re.sub("\n{2}", "\n", lyrics)
         lyrics = lyrics.strip("\n").lower()
 
         lyrics = cls.replacer(lyrics, REPLACE_CHARS, " ")

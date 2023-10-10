@@ -1,21 +1,19 @@
 {% extends 'base.html' %}
 
-{% block title %} {{ artist }} Reports {% endblock %}
+{% block title %}Plots {% endblock %}
 
 {% block content %}
-<h2 class="m-2 mt-3 mb-3">{{ artists }}</h2>
-<br>
 <div class="container">
     <div class="row mb-1">
-    {% for plot in plots %}
-        <div class="col-md-6 p-1">
-            <img src='data:image/png;base64,{{ plot }}' class="img-fluid" alt="Responsive image"/>
-        </div>
-    {% endfor %}
+        {% for plot in plots %}
+            <div class="col-md-6 p-1">
+                {{ plot | safe }}
+            </div>
+        {% endfor %}
     </div>
 </div>
 <div class="mb-2">
-    <a class="btn btn-warning" href="{{ url_for('reports.summary') }}">
+    <a class="btn btn-warning" href="{{ url_for('reports.summary_report') }}">
         Back to reports
     </a>
 </div>

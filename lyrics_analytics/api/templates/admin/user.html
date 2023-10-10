@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %} Admin {% endblock %}
+{% block content %}
+<div class="m-2 mt-4 mb-4 h5 text-center text-light">Editing user: {{ user.username }}</div>
+<div class="text-light">
+    <form method="post">
+        <label for="role-select">Role</label>
+        <select class="form-select" name="user-role" id="role-select">
+            {% for role in roles %}
+            {% if role == user.role %}
+            <option value="{{ user.role }}" selected>{{ user.role }}</option>
+            {% else %}
+            <option value="{{ role }}">{{ role }}</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        <div class="form-check">
+            <label class="form-check-label" for="user-active">User active status</label>
+            {% if user.is_active %}
+            <input class="form-check-input" type="checkbox" id="user-active" name="user-active" checked>
+            {% else %}
+            <input class="form-check-input" type="checkbox" id="user-active" name="user-active">
+            {% endif %}
+        </div>
+        <input type="number" id="fetches" class="form-control" value="{{ user.fetches }}" min="0"/>
+
+        <button class="btn btn-danger" type="submit">Update</button>
+    </form>
+</div>
+
+{% endblock %}

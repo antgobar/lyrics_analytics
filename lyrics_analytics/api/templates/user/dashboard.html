@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ user["username"] }} {% endblock %}
+
+{% block content %}
+<div class="text-light my-2">
+    {% for k, v in user.items() %}
+        <ul class="my-2">{{ k }}: {{ v }}</ul>
+    {% endfor %}
+</div>
+{% endblock %}
