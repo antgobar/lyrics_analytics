@@ -1,4 +1,3 @@
-from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -180,7 +179,7 @@ class TestGeniusService:
     #     )
 
     @patch("lyrics_analytics.services.genius.GeniusService._parse_date")
-    @patch("lyrics_analytics.services.scraper.ScraperService.get_lyrics")
+    @patch("lyrics_analytics.services.scraper.Scraper.get_lyrics")
     @patch("lyrics_analytics.services.genius.GeniusService._get_song")
     def test_get_song_data(
         self, mock_get_song, mock_scraper, mock_date, mock_requests, ping_is_true

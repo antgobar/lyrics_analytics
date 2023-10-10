@@ -11,6 +11,7 @@ TITLE_FILTERS = (
     "annotated",
     "transcript",
     "discography",
+    "mix",
 )
 REPLACE_PATTERNS = ("\u2014",)
 SLEEP_LENGTH = 0.2

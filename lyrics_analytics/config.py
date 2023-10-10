@@ -28,13 +28,8 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    APP_ENV = "DEV"
-
-
-class TestingConfig(Config):
-    TESTING = True
-    APP_ENV = "TEST"
+    APP_ENV = "DEVELOPMENT"
 
 
 class ProductionConfig(Config):
-    APP_ENV = "PROD"
+    APP_ENV = "PRODUCTION"

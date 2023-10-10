@@ -26,9 +26,10 @@ def edit_user(user_id: str):
         return render_template(f"{BASE}/user.html", user=user, roles=ROLES)
 
     user_role = request.form["user-role"]
-    is_active = request.form.get["user-active"]
+    is_active = request.form["user-active"]
+    fetches = request.form["fetches"]
 
-    admin_queries.update_user(user_id, user_role, bool(is_active))
+    admin_queries.update_user(user_id, user_role, bool(is_active), int(fetches))
 
     return redirect(url_for(f"{BASE}.user_control"))
 

@@ -5,8 +5,8 @@ import pytest
 from lyrics_analytics.services.scraper import Scraper
 
 
-@patch("lyrics_analytics.services.scraper.ScraperService.clean")
-@patch("lyrics_analytics.services.scraper.ScraperService.scrape")
+@patch("lyrics_analytics.services.scraper.Scraper.clean")
+@patch("lyrics_analytics.services.scraper.Scraper.scrape")
 def test_scraper_get_lyrics(mock_scrape, mock_clean):
     mock_scrape.return_value = "raw lyrics"
     mock_clean.return_value = "clean lyrics"

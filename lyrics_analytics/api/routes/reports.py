@@ -19,7 +19,7 @@ def summary_report():
     return render_template(
         f"{BASE}/summary.html",
         summary_reports=sumamry_reports,
-        no_data_artists=no_data_artists
+        no_data_artists=no_data_artists,
     )
 
 
@@ -36,13 +36,18 @@ def combined_reports():
     artist_ids = request.args.getlist("artist_ids")
     no_selected_artists = len(artist_ids)
     if not (1 <= no_selected_artists <= 3):
-        flash(f"Select between 1 and 3 artists, you've selected {no_selected_artists}", category="warning")
+        flash(
+            f"Select between 1 and 3 artists, you've selected {no_selected_artists}",
+            category="warning",
+        )
         return redirect(url_for(f"{BASE}.summary"))
 
     songs = report_queries.songs_data(artist_ids)
 
     if len(songs) <= 1:
-        flash("There must be more that one song to generate a report", category="warning")
+        flash(
+            "There must be more that one song to generate a report", category="warning"
+        )
         return redirect(url_for(f"{BASE}.summary"))
 
     count_plot = create_histogram(

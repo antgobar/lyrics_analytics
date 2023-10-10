@@ -4,7 +4,7 @@ from flask import Blueprint, session, render_template, request
 
 from lyrics_analytics.api.routes.auth import login_required
 from lyrics_analytics.database.queries import SearchQueries
-from lyrics_analytics.tasks.tasks import artist_song_data, find_artists
+from lyrics_analytics.worker.tasks import artist_song_data, find_artists
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -39,7 +39,6 @@ def artist():
     status = search_queries.artist_status(artist_id, name)
 
     if status is None:
-
         user_id = session["user_id"]
         fetches = search_queries.get_fetch_count(user_id)
         if fetches <= 0:

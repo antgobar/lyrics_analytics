@@ -31,4 +31,3 @@ def create_histogram(
     fig.update_layout(legend=dict(yanchor="top", y=-0.2, xanchor="left", x=0.0))
 
     return fig.to_html(include_plotlyjs=True, full_html=False)
-

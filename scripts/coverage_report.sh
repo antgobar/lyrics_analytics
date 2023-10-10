@@ -1,0 +1,1 @@
+pytest --cov=lyrics_analytics --cov-report term-missing tests/

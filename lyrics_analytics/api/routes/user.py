@@ -1,15 +1,22 @@
 import os
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, session, render_template, url_for, flash
 
 from lyrics_analytics.api.routes.auth import login_required
+from lyrics_analytics.database.queries import UserQueries
 
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
+user_queries = UserQueries()
 
 
-@bp.get("/<user_id>")
+@bp.get("/<username>")
 @login_required
-def user_dashboard(user_id: str):
-    ...
+def dashboard(username: str):
+    user = user_queries.get_user(session["user_id"])
+    if user["username"] != username:
+        flash(f"You're not {username}", "warning")
+        return render_template(url_for("search.index"))
+
+    return render_template(f"{BASE}/dashboard.html", user=user)

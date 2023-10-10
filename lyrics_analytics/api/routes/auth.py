@@ -29,7 +29,7 @@ def register():
     password = request.form["password"]
 
     if auth_queries.register_user_if_not_exists(username, password):
-        return redirect(url_for("auth.login"))
+        return redirect(url_for(f"{BASE}.login"))
 
     flash(f"User {username} already exists", category="warning")
     return redirect(url_for(f"{BASE}.register"))
@@ -73,22 +73,22 @@ def load_logged_in_user():
 @bp.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("search.index"))
+    return redirect(url_for("auth.login"))
 
 
-def handle_user_session():
-    try:
-        return g.user
-    except AttributeError:
-        flash("Session lost...", "warning")
-        return redirect(url_for("auth.logout"))
+def in_session(state) -> bool:
+    user_in_obj = hasattr(state, "user")
+    if not user_in_obj:
+        return False
+    if state.user is None:
+        return False
+    return True
 
 
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        user = handle_user_session()
-        if user is None:
+        if not in_session(g):
             return redirect(url_for(f"{BASE}.login"))
 
         return view(**kwargs)
@@ -99,10 +99,8 @@ def login_required(view):
 def admin_only(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        user = handle_user_session()
-
-        if user is None:
-            return redirect(url_for(f"{BASE}.login"))
+        if not in_session(g):
+            return redirect(url_for(f"{BASE}.logout"))
 
         if not auth_queries.user_is_admin(g.user["username"]):
             return redirect(url_for("search.index"))
