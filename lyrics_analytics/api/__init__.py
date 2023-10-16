@@ -8,12 +8,10 @@ from lyrics_analytics.database.queries import AdminQueries
 
 
 def create_app():
-    admin_queries = AdminQueries()
-    admin_queries.create_admin()
-
     flask_app = Flask(__name__, instance_relative_config=True)
 
     env = os.getenv("APP_ENV", "PRODUCTION")
+
     if env == "DEVELOPMENT":
         flask_app.config.from_object(DevelopmentConfig)
     else:
@@ -23,6 +21,9 @@ def create_app():
 
     celery_app = make_celery(flask_app)
     celery_app.set_default()
+
+    admin_queries = AdminQueries()
+    admin_queries.create_admin()
 
     from lyrics_analytics.api.routes import admin, auth, reports, search, user
 

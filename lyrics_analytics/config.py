@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
 
-basedir = os.path.abspath(os.path.dirname(__file__))
+dotenv_path = Path(".prod.env")
+load_dotenv(dotenv_path=dotenv_path)
 
 
 class Config:
@@ -23,7 +24,6 @@ class Config:
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
     GENIUS_BASE_URL = os.getenv("GENIUS_BASE_URL")
     DATABASE_NAME = os.getenv("DATABASE_NAME", "LyricStats")
-    MONGO_URI_PROD = os.getenv("MONGO_URI_PROD")
 
 
 class DevelopmentConfig(Config):

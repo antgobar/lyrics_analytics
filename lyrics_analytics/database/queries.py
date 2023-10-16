@@ -209,6 +209,7 @@ class TaskQueries:
 class AdminQueries:
     def __init__(self):
         self.users_collection = client.collection("users")
+        self.songs_collection = client.collection("songs")
 
     def get_users(self):
         users = self.users_collection.find(
@@ -245,6 +246,10 @@ class AdminQueries:
                 USER_FETCHES_LEFT_FIELD: 10,
             }
         )
+
+    def remove_songs_with_no_lyrics(self):
+        response = self.songs_collection.delete_many({LYRICS_COUNT_FIELD: 0})
+        return parse_mongo(dict(response))
 
 
 class UserQueries:

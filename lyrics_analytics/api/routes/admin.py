@@ -11,6 +11,15 @@ admin_queries = AdminQueries()
 ROLES = ["admin", "user", "other"]
 
 
+@bp.route("/")
+@admin_only
+def admin_dashboard():
+    return {
+        "message": "lyrics with 0 count deleted",
+        "response": admin_queries.remove_songs_with_no_lyrics()
+    }
+
+
 @bp.route("/users")
 @admin_only
 def user_control():

@@ -4,8 +4,8 @@ from flask import Blueprint, session, render_template, request
 
 from lyrics_analytics.api.routes.auth import login_required
 from lyrics_analytics.database.queries import SearchQueries
-from lyrics_analytics.worker.tasks import artist_song_data, find_artists
-
+from lyrics_analytics.worker.tasks import artist_song_data
+from lyrics_analytics.services.search_artist import search_artist_by_name
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__)
@@ -26,7 +26,7 @@ def search_artist():
     if been_searched:
         artists = been_searched["found_artists"]
     else:
-        artists = find_artists.delay(name).get()
+        artists = search_artist_by_name(name)
         search_queries.update_search_log(name, artists)
     return render_template(f"{BASE}/results.html", artists=artists, searched=name)
 
