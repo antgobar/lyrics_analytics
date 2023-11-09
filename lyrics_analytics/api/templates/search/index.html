@@ -9,8 +9,8 @@
         id="search-form"
         hx-post="{{ url_for('search.search_artist') }}"
         hx-target="#search-results"
-        hx-trigger="submit"
         hx-replace-url="true"
+        hx-inddicator="#spinner"
         >
     <div>
       <input type="text" class="form-control" id="artist-name" name="artist-name" placeholder="Search Artist" required>
@@ -18,6 +18,7 @@
     <div class="mt-3">
       <button id="search-button" type="submit" class="btn btn-warning text-dark">
         Search
+        <div class="spinner-border spinner-border-sm htmx-indicator" id="spinner"></div>
       </button>
     </div>
   </form>

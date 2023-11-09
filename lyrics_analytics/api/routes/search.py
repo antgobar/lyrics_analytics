@@ -1,11 +1,13 @@
 import os
 
-from flask import Blueprint, session, render_template, request
+from flask import Blueprint, session, render_template, request, redirect, url_for, flash
 
 from lyrics_analytics.api.routes.auth import login_required
-from lyrics_analytics.database.queries import SearchQueries
-from lyrics_analytics.worker.tasks import artist_song_data
-from lyrics_analytics.services.search_artist import search_artist_by_name
+from lyrics_analytics.api.forms import SearchForm
+from lyrics_analytics.common.database.queries import SearchQueries
+from lyrics_analytics.common.services.queue import producer
+from lyrics_analytics.common.services.search_artist import search_artist_by_name
+
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__)
@@ -18,16 +20,21 @@ def index():
     return render_template(f"{BASE}/index.html")
 
 
-@bp.route("/search", methods=("POST",))
+@bp.route("/search", methods=("GET", "POST"))
 @login_required
 def search_artist():
+    if request.method == "GET":
+        return redirect(url_for("index"))
+
     name = request.form["artist-name"]
+
     been_searched = search_queries.artist_previously_searched(name)
     if been_searched:
         artists = been_searched["found_artists"]
     else:
         artists = search_artist_by_name(name)
         search_queries.update_search_log(name, artists)
+
     return render_template(f"{BASE}/results.html", artists=artists, searched=name)
 
 
@@ -44,7 +51,8 @@ def artist():
         if fetches <= 0:
             return "No fetches left"
 
-        artist_song_data.delay(artist_id)
+        search_queries.set_artist_pending(artist_id, name)
+        producer(artist_id)
         search_queries.decrease_fetch_count(user_id)
         return "Fetching..."
 

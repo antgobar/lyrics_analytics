@@ -3,9 +3,14 @@
 {% block title %} {{ user["username"] }} {% endblock %}
 
 {% block content %}
-<div class="text-light my-2">
-    {% for k, v in user.items() %}
-        <ul class="my-2">{{ k }}: {{ v }}</ul>
-    {% endfor %}
-</div>
+<table class="table text-light m-4 bg-dark">
+    <tbody>
+        {% for k, v in user.items() %}
+        <tr>
+            <td>{{ v }}</td>
+            <td>{{ k }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

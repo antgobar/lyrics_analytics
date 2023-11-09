@@ -14,16 +14,13 @@ class Config:
     TESTING = False
     WTF_CSRF_ENABLED = True
     FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
-    CELERY_CONFIG = {
-        "broker_url": os.environ.get("BROKER_URL"),
-        "result_backend": os.environ.get("RESULT_BACKEND"),
-    }
     MONGO_URI = os.getenv("MONGO_URI")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
     PEPPER = os.getenv("PEPPER")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
     GENIUS_BASE_URL = os.getenv("GENIUS_BASE_URL")
     DATABASE_NAME = os.getenv("DATABASE_NAME", "LyricStats")
+    MESSAGE_BROKER_URL = os.getenv("MESSAGE_BROKER_URL")
 
 
 class DevelopmentConfig(Config):

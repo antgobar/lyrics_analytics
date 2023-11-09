@@ -3,8 +3,7 @@ import os
 from flask import Flask
 
 from lyrics_analytics.config import Config, DevelopmentConfig, ProductionConfig
-from lyrics_analytics.worker.worker import make_celery
-from lyrics_analytics.database.queries import AdminQueries
+from lyrics_analytics.common.database.queries import AdminQueries
 
 
 def create_app():
@@ -19,9 +18,6 @@ def create_app():
 
     flask_app.secret_key = Config.FLASK_SECRET_KEY
 
-    celery_app = make_celery(flask_app)
-    celery_app.set_default()
-
     admin_queries = AdminQueries()
     admin_queries.create_admin()
 
@@ -35,8 +31,8 @@ def create_app():
 
     flask_app.add_url_rule("/", endpoint="index")
 
-    return flask_app, celery_app
+    return flask_app
 
 
-app, celery = create_app()
+app = create_app()
 app.app_context().push()

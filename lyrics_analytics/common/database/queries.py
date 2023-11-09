@@ -1,28 +1,15 @@
 from bson.objectid import ObjectId
+from datetime import datetime
+
 from werkzeug.security import check_password_hash, generate_password_hash
 import pandas as pd
 
+from lyrics_analytics.common.database.fields import *
 from lyrics_analytics.config import Config
-from lyrics_analytics.database.db import DbClient, parse_mongo
+from lyrics_analytics.common.database.db import DbClient, parse_mongo
 
 
 client = DbClient()
-
-
-ARTIST_NAME_FIELD = "name"
-DOCUMENT_ID_FIELD = "_id"
-ARTIST_ID_FIELD = "genius_artist_id"
-ARTIST_STATUS_FIELD = "status"
-SONG_TITLE_FIELD = "title"
-LYRICS_COUNT_FIELD = "lyrics_count"
-ALBUM_FIELD = "album"
-SONG_RELEASE_DATE_FIELD = "release_date"
-DISTINCT_COUNT_FIELD = "distinct_count"
-USERNAME_FIELD = "username"
-PASSWORD_FIELD = "password"
-USER_ROLE_FIELD = "role"
-USER_IS_ACTIVE_FIELD = "is_active"
-USER_FETCHES_LEFT_FIELD = "fetches"
 
 
 class ReportsQueries:
@@ -137,16 +124,19 @@ class SearchQueries:
         self.searches_collection = client.collection("searches")
         self.users_collection = client.collection("users")
 
+    def set_artist_pending(self, artist_id: str, artist_name: str):
+        self.artists_collection.insert_one(
+            {
+                ARTIST_ID_FIELD: artist_id,
+                ARTIST_NAME_FIELD: artist_name,
+                ARTIST_STATUS_FIELD: "pending",
+                ARTIST_FETCH_DATE_TIME: datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            }
+        )
+
     def artist_status(self, artist_id: str, artist_name: str) -> None | str:
         artist = self.artists_collection.find_one({ARTIST_ID_FIELD: artist_id})
         if artist is None:
-            self.artists_collection.insert_one(
-                {
-                    ARTIST_ID_FIELD: artist_id,
-                    ARTIST_NAME_FIELD: artist_name,
-                    ARTIST_STATUS_FIELD: "pending",
-                }
-            )
             return None
         return artist[ARTIST_STATUS_FIELD]
 
@@ -174,15 +164,13 @@ class SearchQueries:
 
 
 class TaskQueries:
-    def __init__(self):
-        self.songs_collection = client.collection("songs")
-        self.artists_collection = client.collection("artists")
 
+    @staticmethod
     def insert_many_songs_update_status(
-        self, songs: list[dict], artist_id: str
+        songs: list[dict], artist_id: str
     ) -> dict:
         if not songs:
-            self.artists_collection.update_one(
+            client.collection("artists").update_one(
                 {ARTIST_ID_FIELD: artist_id}, {"$set": {ARTIST_STATUS_FIELD: "failure"}}
             )
             return {
@@ -191,8 +179,8 @@ class TaskQueries:
                 ARTIST_STATUS_FIELD: "failure",
             }
 
-        self.songs_collection.insert_many(songs)
-        self.artists_collection.update_one(
+        client.collection("songs").insert_many(songs)
+        client.collection("artists").update_one(
             {ARTIST_ID_FIELD: artist_id}, {"$set": {ARTIST_STATUS_FIELD: "success"}}
         )
         return {
@@ -201,15 +189,12 @@ class TaskQueries:
             ARTIST_STATUS_FIELD: "success",
         }
 
-    def apply_song_filters(self, field, values_to_remove):
-        result = self.songs_collection.delete_many({field: {"$in": values_to_remove}})
-        return parse_mongo(result)
-
 
 class AdminQueries:
     def __init__(self):
         self.users_collection = client.collection("users")
         self.songs_collection = client.collection("songs")
+        self.artists_collection = client.collection("artists")
 
     def get_users(self):
         users = self.users_collection.find(
@@ -246,6 +231,10 @@ class AdminQueries:
                 USER_FETCHES_LEFT_FIELD: 10,
             }
         )
+
+    def get_pending_artists(self):
+        response = self.artists_collection.find({"status": "pending"})
+        return parse_mongo(list(response))
 
     def remove_songs_with_no_lyrics(self):
         response = self.songs_collection.delete_many({LYRICS_COUNT_FIELD: 0})

@@ -3,8 +3,8 @@ import os
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from lyrics_analytics.api.routes.auth import login_required
-from lyrics_analytics.database.queries import ReportsQueries
-from lyrics_analytics.services.reporting import create_histogram
+from lyrics_analytics.common.database.queries import ReportsQueries
+from lyrics_analytics.common.services.reporting import create_histogram
 
 
 BASE = os.path.basename(__file__).split(".")[0]
@@ -15,10 +15,10 @@ report_queries = ReportsQueries()
 @bp.route("/", methods=("GET",))
 @login_required
 def summary_report():
-    sumamry_reports, no_data_artists = report_queries.artist_lyrics_distribution()
+    summary_reports, no_data_artists = report_queries.artist_lyrics_distribution()
     return render_template(
         f"{BASE}/summary.html",
-        summary_reports=sumamry_reports,
+        summary_reports=summary_reports,
         no_data_artists=no_data_artists,
     )
 

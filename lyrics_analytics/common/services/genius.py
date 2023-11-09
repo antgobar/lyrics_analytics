@@ -7,12 +7,15 @@ import time
 import requests
 from requests.models import Response
 
-from lyrics_analytics.services.constants import (
+from lyrics_analytics.common.services.constants import (
     REPLACE_PATTERNS,
     TITLE_FILTERS,
     SLEEP_LENGTH,
 )
-from lyrics_analytics.services.scraper import Scraper
+from lyrics_analytics.common.services.scraper import Scraper
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 @dataclass

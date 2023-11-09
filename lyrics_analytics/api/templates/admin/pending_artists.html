@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %} Admin - Pending artists {% endblock %}
+
+{% block content %}
+<div class="m-2 mt-4 mb-4 h5 text-center text-light">Pending artists</div>
+
+    {% for artist in pending_artists %}
+    <div class="m-2 mt-4 mb-4 h5 text-center text-light">{{ artist }}</div>
+    {% endfor %}
+    {% endblock %}

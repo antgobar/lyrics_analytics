@@ -1,5 +1,5 @@
 from lyrics_analytics.config import Config
-from lyrics_analytics.services.genius import GeniusService
+from lyrics_analytics.common.services.genius import GeniusService
 
 
 def search_artist_by_name(name):

@@ -12,7 +12,7 @@ from flask import (
     url_for,
 )
 
-from lyrics_analytics.database.queries import AuthQueries
+from lyrics_analytics.common.database.queries import AuthQueries
 
 BASE = os.path.basename(__file__).split(".")[0]
 

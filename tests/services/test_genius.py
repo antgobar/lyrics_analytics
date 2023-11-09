@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lyrics_analytics.services.genius import GeniusService, SongData
+from lyrics_analytics.common.services import GeniusService, SongData
 
 
 @pytest.fixture

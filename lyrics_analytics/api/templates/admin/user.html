@@ -1,31 +1,61 @@
-{% extends 'base.html' %}
-{% block title %} Admin {% endblock %}
-{% block content %}
-<div class="m-2 mt-4 mb-4 h5 text-center text-light">Editing user: {{ user.username }}</div>
-<div class="text-light">
-    <form method="post">
-        <label for="role-select">Role</label>
-        <select class="form-select" name="user-role" id="role-select">
-            {% for role in roles %}
-            {% if role == user.role %}
-            <option value="{{ user.role }}" selected>{{ user.role }}</option>
-            {% else %}
-            <option value="{{ role }}">{{ role }}</option>
-            {% endif %}
-            {% endfor %}
-        </select>
-        <div class="form-check">
-            <label class="form-check-label" for="user-active">User active status</label>
+<form
+        action="post"
+        hx-post="{{ url_for('admin.edit_user', user_id=user._id) }}"
+        hx-target="#update-user-{{ user._id }}">
+    <tr>
+        <td>{{ user.username }}</td>
+        <td>
+            <select class="form-select" name="user-role" id="role-select">
+                {% for role in roles %}
+                {% if role == user.role %}
+                <option value="{{ user.role }}" selected>{{ user.role }}</option>
+                {% else %}
+                <option value="{{ role }}">{{ role }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </td>
+        <td>
             {% if user.is_active %}
-            <input class="form-check-input" type="checkbox" id="user-active" name="user-active" checked>
+            <div class="form-check">
+                <input class="form-check-input" value="is-active" type="radio" name="user-active-{{ user._id }}" id=flexRadioDefault1 checked>
+                <label class="form-check-label" for=flexRadioDefault1>
+                    Activated
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" value="not-active" type="radio" name="user-active-{{ user._id }}" id="flexRadioDefault2">
+                <label class="form-check-label" for="flexRadioDefault2">
+                    Deactivated
+                </label>
+            </div>
             {% else %}
-            <input class="form-check-input" type="checkbox" id="user-active" name="user-active">
+            <div class="form-check">
+                <input class="form-check-input" value="is-active" type="radio" name="user-active-{{ user._id }}" id=flexRadioDefault1>
+                <label class="form-check-label" for=flexRadioDefault1>
+                    Activated
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" value="not-active" type="radio" name="user-active-{{ user._id }}" id="flexRadioDefault2" checked>
+                <label class="form-check-label" for="flexRadioDefault2">
+                    Deactivated
+                </label>
+            </div>
             {% endif %}
-        </div>
-        <input type="number" id="fetches" class="form-control" value="{{ user.fetches }}" min="0"/>
-
-        <button class="btn btn-danger" type="submit">Update</button>
-    </form>
-</div>
-
-{% endblock %}
+        </td>
+        <td>
+            <input type="number" name="fetches" id="typeNumber" class="form-control" value="{{ user.fetches }}" min="0"/>
+        </td>
+        <td>
+            <button type="submit" id="update-user-{{ user._id }}" class="btn btn-primary">
+                Update
+            </button>
+        </td>
+        <td>
+            <a href="" class="btn btn-danger">
+                Delete
+            </a>
+        </td>
+    </tr>
+</form>
