@@ -8,3 +8,4 @@ local/
 .venv
 .coverage
 .ruff_cache
+.envrc

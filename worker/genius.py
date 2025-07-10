@@ -7,13 +7,24 @@ from typing import Callable, Generator, Protocol
 import httpx
 from httpx import Response
 
-from lyrics_analytics.services.constants import (
-    REPLACE_PATTERNS,
-    TITLE_FILTERS,
-)
 from worker.scraper import LyricsData, get_lyrics_for_url
 
 _SLEEP_LENGTH = 0.2
+_REPLACE_PATTERNS = ("\u2014",)
+_TITLE_FILTERS = (
+    "(",
+    "[",
+    ")",
+    "]",
+    "demo",
+    "tour",
+    "award",
+    "speech",
+    "annotated",
+    "transcript",
+    "discography",
+    "mix",
+)
 
 
 logger = logging.getLogger(__name__)
@@ -168,7 +179,7 @@ class GeniusService:
         name = album_data if album_data is None else album_data.get("name")
         if name is None:
             return None
-        for to_filter in TITLE_FILTERS:
+        for to_filter in _TITLE_FILTERS:
             if to_filter.lower() in name.lower():
                 return None
         return name
@@ -189,10 +200,10 @@ class GeniusService:
     def _title_filter(self, title: str) -> bool:
         title = title.lower()
 
-        for pattern in REPLACE_PATTERNS:
+        for pattern in _REPLACE_PATTERNS:
             title = title.replace(pattern, " ")
 
-        for pattern in TITLE_FILTERS:
+        for pattern in _TITLE_FILTERS:
             if pattern in title:
                 return False
 
