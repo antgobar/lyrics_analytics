@@ -1,10 +1,9 @@
+import pandas as pd
 from bson.objectid import ObjectId
 from werkzeug.security import check_password_hash, generate_password_hash
-import pandas as pd
 
 from lyrics_analytics.config import Config
 from lyrics_analytics.database.db import DbClient, parse_mongo
-
 
 client = DbClient()
 
@@ -227,7 +226,13 @@ class AdminQueries:
     def update_user(self, user_id: str, role: str, status: bool, fetches: int):
         response = self.users_collection.update_one(
             {DOCUMENT_ID_FIELD: ObjectId(user_id)},
-            {"$set": {USER_ROLE_FIELD: role, USER_IS_ACTIVE_FIELD: status, USER_FETCHES_LEFT_FIELD: fetches}},
+            {
+                "$set": {
+                    USER_ROLE_FIELD: role,
+                    USER_IS_ACTIVE_FIELD: status,
+                    USER_FETCHES_LEFT_FIELD: fetches,
+                }
+            },
         )
         return parse_mongo(response)
 
