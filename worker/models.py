@@ -11,3 +11,8 @@ class SongData(BaseModel):
     album: str
     release_date: datetime
     lyrics: str
+
+
+class ArtistData(BaseModel):
+    genius_artist_id: str
+    name: str

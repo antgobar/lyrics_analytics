@@ -1,4 +1,3 @@
-import logging
 import time
 from dataclasses import dataclass
 from datetime import date
@@ -6,8 +5,12 @@ from typing import Callable, Generator, Protocol
 
 import httpx
 from httpx import Response
+from logger import setup_logger
+from models import ArtistData
+from scraper import get_lyrics_for_url
 
-from worker.scraper import LyricsData, get_lyrics_for_url
+logger = setup_logger(__name__)
+
 
 _SLEEP_LENGTH = 0.2
 _REPLACE_PATTERNS = ("\u2014",)
@@ -27,10 +30,6 @@ _TITLE_FILTERS = (
 )
 
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-
 @dataclass
 class SongData:
     name: str
@@ -39,13 +38,7 @@ class SongData:
     title: str
     album: str
     release_date: date
-    lyrics_data: LyricsData
-
-
-@dataclass
-class ArtistData:
-    id: str
-    name: str
+    lyrics: str
 
 
 class GeniusRequest(Protocol):
@@ -61,23 +54,23 @@ class GeniusService:
         if health_check:
             self.ping()
 
-    def ping(self):
-        response = httpx.get(f"{self._base_url}/songs/1", params=self._base_params)
-        if response.ok and response.json()["meta"]["status"] == 200:
-            logger.info("Genius connected")
-            return True
-        else:
-            raise ConnectionError("Unable to connect")
-
     @staticmethod
     def handle_response(func) -> Callable:
         def wrapper(*args, **kwargs) -> dict:
             response = func(*args, **kwargs)
-            if response.ok and response.json()["meta"]["status"] == 200:
+            if response.status_code == 200 and response.json()["meta"]["status"] == 200:
                 return response.json()["response"]
             raise ConnectionError("Unable to connect")
 
         return wrapper
+
+    def ping(self):
+        response = httpx.get(f"{self._base_url}/songs/1", params=self._base_params)
+        if response.status_code == 200 and response.json()["meta"]["status"] == 200:
+            logger.info("Genius connected")
+            return True
+        else:
+            raise ConnectionError("Unable to connect")
 
     @handle_response
     def _search_artist(self, artist_name: str) -> Response:
@@ -95,7 +88,9 @@ class GeniusService:
             in hit_result["result"]["primary_artist"]["name"].lower()
         ):
             artist_data = hit_result["result"]["primary_artist"]
-            return ArtistData(id=artist_data["id"], name=artist_data["name"])
+            return ArtistData(
+                genius_artist_id=artist_data["id"], name=artist_data["name"]
+            )
 
     @handle_response
     def _get_artist_song_page(self, artist_id: str, page_no: int) -> Response:
@@ -108,8 +103,7 @@ class GeniusService:
     @handle_response
     def _get_artist_name(self, artist_id: str) -> str:
         url = f"{self._base_url}/artists/{artist_id}"
-        response = httpx.get(url, params=self._base_params)
-        return response["artist"]["name"].lower()
+        return httpx.get(url, params=self._base_params)
 
     @handle_response
     def _get_song(self, song_id):
@@ -123,18 +117,25 @@ class GeniusService:
             return []
 
         artists_found = []
+        artists_ids = set()
         for result in response["hits"]:
             artist_result = result["result"]["primary_artist"]
             if artist_name.lower() not in artist_result["name"].lower():
                 continue
+            if artist_result["id"] in artists_ids:
+                continue
             artists_found.append(
-                ArtistData(id=artist_result["id"], name=artist_result["name"])
+                ArtistData(
+                    genius_artist_id=artist_result["id"], name=artist_result["name"]
+                )
             )
+            artists_ids.add(artist_result["id"])
 
         return artists_found
 
     def artist_song_retriever(self, artist_id: str) -> Generator[SongData]:
-        artist_name = self._get_artist_name(artist_id)
+        artist_name = self._get_artist_name(artist_id)["artist"]["name"].lower()
+        logger.info(f"Retrieving songs for artist: {artist_name} (ID: {artist_id})")
         page_no = 1
 
         while True:
@@ -186,7 +187,6 @@ class GeniusService:
 
     def _get_song_data(self, song_response: dict) -> SongData:
         song = self._get_song(song_response["id"])["song"]
-        lyrics_data = get_lyrics_for_url(song_response["url"])
         return SongData(
             name=song_response["primary_artist"]["name"],
             genius_artist_id=str(song_response["primary_artist"]["id"]),
@@ -194,7 +194,7 @@ class GeniusService:
             title=song_response["title"],
             album=self._parse_album(song.get("album")),
             release_date=self._parse_date(song_response.get("release_date_components")),
-            lyrics_data=lyrics_data,
+            lyrics=get_lyrics_for_url(song_response["url"]),
         )
 
     def _title_filter(self, title: str) -> bool:

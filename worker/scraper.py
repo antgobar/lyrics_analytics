@@ -1,11 +1,7 @@
-import logging
 import re
 
 import httpx
 from bs4 import BeautifulSoup
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 _REPLACE_CHARS = ("\n", ",", ".", "(", ")", "/", '"', "\\", "-")
 

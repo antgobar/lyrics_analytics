@@ -1,82 +1,99 @@
 import json
+import time
+from typing import Callable
 
-from pika import BlockingConnection, ConnectionParameters
+from config import Config
+from genius import GeniusService
+from logger import setup_logger
+from pika import BlockingConnection, URLParameters
+from pika.exceptions import AMQPConnectionError
+from store import Store
+from tasks import Tasks
 
-from worker.config import Config
-from worker.genius import GeniusService
-from worker.tasks import get_artist_songs, search_artists
+logger = setup_logger(__name__)
 
 
-def provide_handle_search_artists(service: GeniusService):
-    def handle_search_artists(ch, method, properties, body: str):
+CallbackFunc = Callable[[str], None]
+
+
+def provide_rabbitmq_handler(key: str, func: CallbackFunc):
+    def handler(ch, method, properties, body):
         try:
-            message = json.loads(body)
-            search_artists(service, **message)
+            logger.info(body)
+            message = json.loads(body.decode())
+            func(message[key])
             ch.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
-            print(f"Error in search_artists: {e}")
+            logger.info(f"Error in {key}: {e}")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    return handle_search_artists
+    return handler
 
 
-def provide_handle_get_artist_songs(service: GeniusService, store):
-    def handle_get_artist_songs(ch, method, properties, body):
+def connect(url: str) -> BlockingConnection | None:
+    parameters = URLParameters(url)
+    attempts = 5
+    connection = None
+
+    logger.info("Connecting to RabbitMQ...")
+    while attempts > 0:
         try:
-            message = json.loads(body)
-            songs = get_artist_songs(service, **message)
-            store.save_songs(songs)
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-        except Exception as e:
-            print(f"Error in get_artist_songs: {e}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+            connection = BlockingConnection(parameters)
+            if connection is None:
+                time.sleep(1)
+                continue
+            logger.info("✅ Connected to RabbitMQ")
+            break
+        except AMQPConnectionError:
+            attempts -= 1
+            logger.info(f"AMQPConnectionError raised - attempts left {attempts}")
+            time.sleep(1)
+    else:
+        logger.info("❌ Could not connect to RabbitMQ after 5 tries — exiting")
+        return None
 
-    return handle_get_artist_songs
-
-
-def handle_search_artists(ch, method, properties, body: str):
-    try:
-        message = json.loads(body)
-        search_artists(**message)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-    except Exception as e:
-        print(f"Error in search_artists: {e}")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-
-
-def handle_get_artist_songs(ch, method, properties, body):
-    try:
-        message = json.loads(body)
-        get_artist_songs(**message)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-    except Exception as e:
-        print(f"Error in get_artist_songs: {e}")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+    return connection
 
 
 def consume():
-    connection = BlockingConnection(ConnectionParameters(host=Config.RABBITMQ_HOST))
+    genius_service = GeniusService(
+        Config.GENIUS_BASE_URL, Config.GENIUS_CLIENT_ACCESS_TOKEN
+    )
+    store = Store()
+
+    tasks = Tasks(genius_service, store)
+
+    handle_search_artists = provide_rabbitmq_handler(
+        "artist_name", tasks.search_artists
+    )
+    handle_get_artist_songs = provide_rabbitmq_handler(
+        "artist_id", tasks.get_artist_songs
+    )
+
+    connection = connect(Config.BROKER_URL)
     channel = connection.channel()
 
-    # Declare both queues
-    channel.queue_declare(queue=Config.QUEUE_SEARCH, durable=True)
-    channel.queue_declare(queue=Config.QUEUE_GET_SONGS, durable=True)
+    channel.queue_declare(queue=Config.QUEUE_SEARCH_ARTISTS, durable=True)
+    channel.queue_declare(queue=Config.QUEUE_GET_ARTIST_SONGS, durable=True)
 
     channel.basic_qos(prefetch_count=1)
 
-    # Bind a consumer for each queue
     channel.basic_consume(
-        queue=Config.QUEUE_SEARCH, on_message_callback=handle_search_artists
+        queue=Config.QUEUE_SEARCH_ARTISTS, on_message_callback=handle_search_artists
     )
     channel.basic_consume(
-        queue=Config.QUEUE_GET_SONGS, on_message_callback=handle_get_artist_songs
+        queue=Config.QUEUE_GET_ARTIST_SONGS, on_message_callback=handle_get_artist_songs
     )
 
-    print("[*] Waiting for messages in both queues. To exit press CTRL+C")
+    logger.info("[*] Waiting for messages in both queues. To exit press CTRL+C")
     try:
         channel.start_consuming()
     except KeyboardInterrupt:
-        print("Interrupted")
+        logger.info("Interrupted")
         channel.stop_consuming()
     finally:
         connection.close()
+
+
+if __name__ == "__main__":
+    consume()
