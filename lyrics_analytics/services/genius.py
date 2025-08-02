@@ -67,10 +67,7 @@ class GeniusService:
 
     @staticmethod
     def _find_artists_iter(hit_result: dict, artist_name: str) -> dict | None:
-        if (
-            artist_name.lower()
-            in hit_result["result"]["primary_artist"]["name"].lower()
-        ):
+        if artist_name.lower() in hit_result["result"]["primary_artist"]["name"].lower():
             artist_data = hit_result["result"]["primary_artist"]
             return {"id": artist_data["id"], "name": artist_data["name"]}
 
@@ -97,9 +94,7 @@ class GeniusService:
         if response is None:
             logging.info(f"Not found: {artist_name}")
             return []
-        artists_found = [
-            self._find_artists_iter(result, artist_name) for result in response["hits"]
-        ]
+        artists_found = [self._find_artists_iter(result, artist_name) for result in response["hits"]]
         artists_found = [found for found in artists_found if found is not None]
 
         return list({artist["id"]: artist for artist in artists_found}.values())
@@ -119,14 +114,8 @@ class GeniusService:
             response = self._get_artist_song_page(artist_id, page_no)
             for song in response["songs"]:
                 passed_filter = self._title_filter(song["title"])
-                is_primary_artist = (
-                    artist_name == song["primary_artist"]["name"].lower()
-                )
-                if (
-                    song["lyrics_state"] != "complete"
-                    or not passed_filter
-                    or not is_primary_artist
-                ):
+                is_primary_artist = artist_name == song["primary_artist"]["name"].lower()
+                if song["lyrics_state"] != "complete" or not passed_filter or not is_primary_artist:
                     continue
 
                 song_data = self._get_song_data(song)

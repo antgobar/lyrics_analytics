@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 from pydantic import BaseModel
 
@@ -8,9 +8,9 @@ class SongData(BaseModel):
     genius_artist_id: str
     genius_song_id: str
     title: str
-    album: str
-    release_date: datetime
-    lyrics: str
+    album: str | None
+    release_date: date
+    url: str | None
 
 
 class ArtistData(BaseModel):

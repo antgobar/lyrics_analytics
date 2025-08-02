@@ -90,9 +90,7 @@ class AuthQueries:
         self.users_collection = client.collection("users")
 
     def user_by_id(self, user_id: str) -> dict | None:
-        user = self.users_collection.find_one(
-            {DOCUMENT_ID_FIELD: ObjectId(user_id), USER_IS_ACTIVE_FIELD: True}
-        )
+        user = self.users_collection.find_one({DOCUMENT_ID_FIELD: ObjectId(user_id), USER_IS_ACTIVE_FIELD: True})
         if user:
             return parse_mongo(user)
         return None
@@ -116,17 +114,13 @@ class AuthQueries:
     def user_is_authorised(self, username: str, password: str) -> dict | None:
         user = self.users_collection.find_one({USERNAME_FIELD: username})
 
-        if not user or not check_password_hash(
-            user[PASSWORD_FIELD], password + Config.PEPPER
-        ):
+        if not user or not check_password_hash(user[PASSWORD_FIELD], password + Config.PEPPER):
             return None
 
         return parse_mongo(user)
 
     def user_is_admin(self, username: str):
-        user = self.users_collection.find_one(
-            {USERNAME_FIELD: username, USER_ROLE_FIELD: "admin"}
-        )
+        user = self.users_collection.find_one({USERNAME_FIELD: username, USER_ROLE_FIELD: "admin"})
         return parse_mongo(user)
 
 
@@ -152,12 +146,8 @@ class SearchQueries:
     def artist_previously_searched(self, artist_name: str) -> dict | None:
         return self.searches_collection.find_one({"search_name": artist_name})
 
-    def update_search_log(
-        self, searched_artist: str, found_artists: list[dict]
-    ) -> None:
-        self.searches_collection.insert_one(
-            {"search_name": searched_artist, "found_artists": found_artists}
-        )
+    def update_search_log(self, searched_artist: str, found_artists: list[dict]) -> None:
+        self.searches_collection.insert_one({"search_name": searched_artist, "found_artists": found_artists})
 
     def decrease_fetch_count(self, user_id: str):
         self.users_collection.update_one(
@@ -166,9 +156,7 @@ class SearchQueries:
         )
 
     def get_fetch_count(self, user_id: str):
-        user = self.users_collection.find_one(
-            {DOCUMENT_ID_FIELD: ObjectId(user_id)}, {PASSWORD_FIELD: 0}
-        )
+        user = self.users_collection.find_one({DOCUMENT_ID_FIELD: ObjectId(user_id)}, {PASSWORD_FIELD: 0})
         return user[USER_FETCHES_LEFT_FIELD]
 
 
@@ -177,13 +165,9 @@ class TaskQueries:
         self.songs_collection = client.collection("songs")
         self.artists_collection = client.collection("artists")
 
-    def insert_many_songs_update_status(
-        self, songs: list[dict], artist_id: str
-    ) -> dict:
+    def insert_many_songs_update_status(self, songs: list[dict], artist_id: str) -> dict:
         if not songs:
-            self.artists_collection.update_one(
-                {ARTIST_ID_FIELD: artist_id}, {"$set": {ARTIST_STATUS_FIELD: "failure"}}
-            )
+            self.artists_collection.update_one({ARTIST_ID_FIELD: artist_id}, {"$set": {ARTIST_STATUS_FIELD: "failure"}})
             return {
                 ARTIST_ID_FIELD: artist_id,
                 "total": 0,
@@ -191,9 +175,7 @@ class TaskQueries:
             }
 
         self.songs_collection.insert_many(songs)
-        self.artists_collection.update_one(
-            {ARTIST_ID_FIELD: artist_id}, {"$set": {ARTIST_STATUS_FIELD: "success"}}
-        )
+        self.artists_collection.update_one({ARTIST_ID_FIELD: artist_id}, {"$set": {ARTIST_STATUS_FIELD: "success"}})
         return {
             ARTIST_ID_FIELD: artist_id,
             "total": len(songs),
@@ -242,9 +224,7 @@ class AdminQueries:
         self.users_collection.insert_one(
             {
                 USERNAME_FIELD: "admin",
-                PASSWORD_FIELD: generate_password_hash(
-                    Config.ADMIN_PASSWORD + Config.PEPPER
-                ),
+                PASSWORD_FIELD: generate_password_hash(Config.ADMIN_PASSWORD + Config.PEPPER),
                 USER_ROLE_FIELD: "admin",
                 USER_IS_ACTIVE_FIELD: True,
                 USER_FETCHES_LEFT_FIELD: 10,

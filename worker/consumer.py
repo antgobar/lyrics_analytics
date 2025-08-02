@@ -3,7 +3,7 @@ import time
 from typing import Callable
 
 from config import Config
-from genius import GeniusService
+from genius import Genius
 from logger import setup_logger
 from pika import BlockingConnection, URLParameters
 from pika.exceptions import AMQPConnectionError
@@ -56,34 +56,27 @@ def connect(url: str) -> BlockingConnection | None:
 
 
 def consume():
-    genius_service = GeniusService(
-        Config.GENIUS_BASE_URL, Config.GENIUS_CLIENT_ACCESS_TOKEN
-    )
-    store = Store()
-
-    tasks = Tasks(genius_service, store)
-
-    handle_search_artists = provide_rabbitmq_handler(
-        "artist_name", tasks.search_artists
-    )
-    handle_get_artist_songs = provide_rabbitmq_handler(
-        "artist_id", tasks.get_artist_songs
-    )
+    genius = Genius(Config.GENIUS_BASE_URL, Config.GENIUS_CLIENT_ACCESS_TOKEN)
+    store = Store(Config.DATABASE_URL)
 
     connection = connect(Config.BROKER_URL)
     channel = connection.channel()
 
     channel.queue_declare(queue=Config.QUEUE_SEARCH_ARTISTS, durable=True)
     channel.queue_declare(queue=Config.QUEUE_GET_ARTIST_SONGS, durable=True)
+    channel.queue_declare(queue=Config.QUEUE_SCRAPE_LYRICS_URL, durable=True)
 
     channel.basic_qos(prefetch_count=1)
 
-    channel.basic_consume(
-        queue=Config.QUEUE_SEARCH_ARTISTS, on_message_callback=handle_search_artists
-    )
-    channel.basic_consume(
-        queue=Config.QUEUE_GET_ARTIST_SONGS, on_message_callback=handle_get_artist_songs
-    )
+    tasks = Tasks(genius=genius, store=store, scraper=None, scrape_queue=None)
+
+    handle_search_artists = provide_rabbitmq_handler("artist_name", tasks.search_artists)
+    handle_get_artist_songs = provide_rabbitmq_handler("artist_id", tasks.get_artist_songs)
+    handle_scrape_lyrics = provide_rabbitmq_handler("url", tasks.scrape_lyrics)
+
+    channel.basic_consume(queue=Config.QUEUE_SEARCH_ARTISTS, on_message_callback=handle_search_artists)
+    channel.basic_consume(queue=Config.QUEUE_GET_ARTIST_SONGS, on_message_callback=handle_get_artist_songs)
+    channel.basic_consume(queue=Config.QUEUE_SCRAPE_LYRICS_URL, on_message_callback=handle_scrape_lyrics)
 
     logger.info("[*] Waiting for messages in both queues. To exit press CTRL+C")
     try:

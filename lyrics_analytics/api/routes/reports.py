@@ -45,14 +45,10 @@ def combined_reports():
     songs = report_queries.songs_data(artist_ids)
 
     if len(songs) <= 1:
-        flash(
-            "There must be more that one song to generate a report", category="warning"
-        )
+        flash("There must be more that one song to generate a report", category="warning")
         return redirect(url_for(f"{BASE}.summary"))
 
-    count_plot = create_histogram(
-        songs, "lyrics_count", "name", "Number of lyrics", "Artist"
-    )
+    count_plot = create_histogram(songs, "lyrics_count", "name", "Number of lyrics", "Artist")
     distinct_plot = create_histogram(
         songs,
         "distinct_count",

@@ -13,3 +13,13 @@ dependencies = [
     "ruff>=0.12.2",
     "sqlalchemy>=2.0.41",
 ]
+
+[dependency-groups]
+dev = ["pytest>=8.4.1"]
+
+[tool.ruff]
+line-length = 120
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
