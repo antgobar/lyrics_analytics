@@ -3,9 +3,8 @@ from datetime import date
 from typing import Generator
 
 import httpx
-
-from .logger import setup_logger
-from .models import ArtistData, SongData
+from logger import setup_logger
+from models import ArtistData, SongData
 
 logger = setup_logger(__name__)
 
@@ -75,7 +74,10 @@ class Genius:
         return date(year, month, day)
 
     @staticmethod
-    def _parse_album(album_data: dict) -> str | None:
+    def _parse_album(song_data: dict) -> str | None:
+        album_data = song_data.get("song", {}).get("album", {})
+        if not album_data:
+            return None
         name = album_data.get("name")
         if name is None:
             return None
@@ -88,7 +90,7 @@ class Genius:
         title_filtered = self._title_filter(song_data["title"].lower().strip())
         is_primary_artist = artist_name == song_data["primary_artist"]["name"].lower()
 
-        if any(song_data["lyrics_state"] != "complete", not title_filtered, not is_primary_artist):
+        if any([song_data["lyrics_state"] != "complete", not title_filtered, not is_primary_artist]):
             return None
 
         return self._get_song_data(song_data)
@@ -107,6 +109,7 @@ class Genius:
                 continue
             if artist_result["id"] in artists_ids:
                 continue
+            logger.info(f"Found artist: {artist_result['name']} (ID: {artist_result['id']})")
             artists_found.append(ArtistData(genius_artist_id=artist_result["id"], name=artist_result["name"]))
             artists_ids.add(artist_result["id"])
 
@@ -123,7 +126,9 @@ class Genius:
                 logger.error(f"Failed to retrieve songs for artist ID: {artist_id}")
                 break
             for song_data in response["songs"]:
-                yield self._parse_song(song_data, artist_name)
+                song = self._parse_song(song_data, artist_name)
+                if song:
+                    yield song
 
             if response["next_page"] is None:
                 break
@@ -131,22 +136,20 @@ class Genius:
             page_no += 1
             time.sleep(_SLEEP_LENGTH)
 
-    def _get_song_data(self, song_response: dict) -> SongData:
+    def _get_song_data(self, song_response: dict) -> SongData | None:
+        logger.info(f"Processing song: {song_response['title']} (ID: {song_response['id']})")
         song = self._get_song(song_response["id"])
         if song is None:
-            album = None
-        else:
-            song_album = song["song"].get("album", {})
-            album = self._parse_album(song_album)
-
+            logger.error(f"Failed to retrieve song data for ID: {song_response['id']}")
+            return None
         return SongData(
             name=song_response["primary_artist"]["name"],
-            genius_artist_id=str(song_response["primary_artist"]["id"]),
-            genius_song_id=str(song_response["id"]),
+            genius_artist_id=song_response["primary_artist"]["id"],
+            song_id=song_response["id"],
             title=song_response["title"],
-            album=album,
+            album=self._parse_album(song),
             release_date=self._parse_date(song_response.get("release_date_components")),
-            url=song_response["url"],
+            lyrics_url=song_response["url"],
         )
 
     def _title_filter(self, title: str) -> bool:

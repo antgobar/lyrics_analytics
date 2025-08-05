@@ -19,7 +19,7 @@ from lyrics_analytics.services.scraper import Scraper
 class SongData:
     name: str
     genius_artist_id: str
-    genius_song_id: str
+    song_id: str
     title: str
     lyrics_count: int
     distinct_count: int
@@ -157,7 +157,7 @@ class GeniusService:
         return SongData(
             name=song_response["primary_artist"]["name"],
             genius_artist_id=str(song_response["primary_artist"]["id"]),
-            genius_song_id=str(song_response["id"]),
+            song_id=song_response["id"],
             title=song_response["title"],
             lyrics_count=len(lyrics),
             distinct_count=len(set(lyrics)),
