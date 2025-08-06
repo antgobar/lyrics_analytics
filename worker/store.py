@@ -1,3 +1,4 @@
+from flask import json
 from models import ArtistData, SongData
 
 
@@ -10,9 +11,10 @@ class Store:
         pass
 
     def save_songs(self, songs: list[SongData]):
-        # Implement saving logic here
-        pass
+        with open("songs.txt", "a") as f:
+            for song in songs:
+                f.write(song.model_dump_json() + "\n")
 
     def save_lyrics(self, song_id: str, lyrics: str):
-        # Implement saving logic here
-        pass
+        with open("lyrics.txt", "a") as f:
+            f.write(json.dumps({"song_id": song_id, "lyrics": lyrics[:100]}) + "\n")

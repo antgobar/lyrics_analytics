@@ -1,6 +1,11 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel as Base
+from pydantic import ConfigDict
+
+
+class BaseModel(Base):
+    model_config = ConfigDict(coerce_numbers_to_str=True)
 
 
 class SongData(BaseModel):
@@ -15,6 +20,5 @@ class SongData(BaseModel):
 
 
 class ArtistData(BaseModel):
-    model_config = ConfigDict(coerce_numbers_to_str=True)
     genius_artist_id: str
     name: str

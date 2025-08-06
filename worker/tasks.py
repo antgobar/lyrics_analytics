@@ -25,27 +25,20 @@ class Tasks:
 
     def get_artist_songs(self, artist_id: str, scraper_queue: str):
         logger.info(f"Retrieving songs for artist_id: {artist_id}, scraper_queue: {scraper_queue}")
-        batch: list[SongData] = []
         get_songs = self.service.artist_song_retriever(artist_id)
+        batch: list[SongData] = []
         for song in get_songs:
-            batch.append(song)
             if len(batch) >= _STORE_WRITE_BATCH_SIZE:
-                logger.info(f"Saving batch of {len(batch)} songs for artist_id: {artist_id}")
-                self.store.save_songs(batch)
-                for song in batch:
-                    if song.lyrics_url:  # Only queue songs that have a lyrics URL
-                        self.broker.send_message(
-                            scraper_queue, {"lyrics_url": song.lyrics_url, "song_id": song.song_id}
-                        )
-                batch.clear()
+                self._save_songs_batch(batch, scraper_queue)
+            batch.append(song)
 
-        # Process any remaining songs in the final batch
         if batch:
-            logger.info(f"Saving final batch of {len(batch)} songs for artist_id: {artist_id}")
-            self.store.save_songs(batch)
-            for song in batch:
-                if song.lyrics_url:  # Only queue songs that have a lyrics URL
-                    self.broker.send_message(scraper_queue, {"lyrics_url": song.lyrics_url, "song_id": song.song_id})
+            self._save_songs_batch(batch, scraper_queue)
+
+    def _save_songs_batch(self, songs: list[SongData], queue_name: str):
+        self.store.save_songs(songs)
+        for song in songs:
+            self.broker.send_message(queue_name, {"lyrics_url": song.lyrics_url, "song_id": song.song_id})
 
     def scrape_lyrics(self, song_id: str, song_url: str):
         lyrics = self.scraper.get_lyrics(song_url)
