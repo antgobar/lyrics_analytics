@@ -64,12 +64,12 @@ class Genius:
             return ArtistData(genius_artist_id=artist_data["id"], name=artist_data["name"])
 
     @staticmethod
-    def _parse_date(date_data: dict | str) -> str | date:
+    def _parse_date(date_data: dict | str) -> date:
         if not isinstance(date_data, dict):
-            date_data = {}
-        year = date_data.get("year", 1)
-        month = date_data.get("month", 1)
-        day = date_data.get("day", 1)
+            return date(1, 1, 1)  # Default date if no data is provided
+        year = date_data.get("year") or 1
+        month = date_data.get("month") or 1
+        day = date_data.get("day") or 1
         return date(year, month, day)
 
     @staticmethod
@@ -126,8 +126,12 @@ class Genius:
                 break
             for song_data in response["songs"]:
                 song = self._parse_song(song_data, artist_name)
+                if song is None:
+                    logger.info(f"Skipping song: {song_data['title']} (ID: {song_data['id']})")
                 if song:
+                    logger.info(f"Found song: {song.title} (ID: {song.song_id})")
                     yield song
+                
 
             if response["next_page"] is None:
                 break

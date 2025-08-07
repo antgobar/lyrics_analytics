@@ -9,7 +9,6 @@ class BaseModel(Base):
 
 
 class SongData(BaseModel):
-    model_config = ConfigDict(coerce_numbers_to_str=True, frozen=False)
     name: str
     genius_artist_id: str
     song_id: str
@@ -22,3 +21,16 @@ class SongData(BaseModel):
 class ArtistData(BaseModel):
     genius_artist_id: str
     name: str
+
+
+class SearchArtistRequest(BaseModel):
+    artist_name: str
+
+
+class GetArtistSongsRequest(BaseModel):
+    artist_id: str
+
+
+class ScrapeSongLyricsRequest(BaseModel):
+    song_id: str
+    song_url: str

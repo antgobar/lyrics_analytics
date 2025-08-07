@@ -8,7 +8,9 @@ from logger import setup_logger
 from pika import BlockingConnection, URLParameters
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.exceptions import AMQPConnectionError
+from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel, ConfigDict
+import traceback
 
 _CONNECTION_WAIT_TIME = 1  # seconds
 _CONNECTION_ATTEMPTS = 5  # number of attempts to connect
@@ -32,7 +34,6 @@ class Broker:
     def __init__(self, broker_url: str):
         self.broker_url = broker_url
         self.connected_queues: list[ConnectedQueue] = []
-        self.publisher = Publisher(self)
 
     def connect(self) -> BlockingChannel:
         parameters = URLParameters(self.broker_url)
@@ -101,19 +102,22 @@ class Broker:
             channel.close()
 
 
-class Publisher:
-    def __init__(self, broker: Broker):
-        self.channel = broker.connect()
-        self.queue_name = None
+def provide_handler(
+    func: Callable[..., str], model: type[BaseModel]
+) -> Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]:
+    def handler(ch: BlockingChannel, method: Basic.Deliver, properties: BasicProperties, body: bytes):
+        try:
+            message = json.loads(body.decode())
+            if not message:
+                logger.info(f"Empty message received: {body}")
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+                return
+            print(f"Received message: {message}")
+            func(**model.model_validate(message).model_dump())
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+        except Exception as e:
+            tb = traceback.format_exc()
+            logger.info(f"Error in message: {message}: {e}\n{tb}")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    def __enter__(self, queue_name, body: dict[str, Any]):
-        self.queue_name = queue_name
-        self.channel.queue_declare(queue=queue_name, durable=True)
-
-    def __exit__(self):
-        self.channel.close()
-
-    def publish(self, body: dict[str, Any]):
-        if not self.queue_name:
-            raise ValueError("Queue name must be set before publishing")
-        self.channel.basic_publish(exchange="", routing_key=self.queue_name, body=json.dumps(body).encode("utf-8"))
+    return handler

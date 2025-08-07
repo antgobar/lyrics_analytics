@@ -15,11 +15,12 @@ _SLEEP_MIN_MAX = (1, 2)
 
 
 class Tasks:
-    def __init__(self, service: Genius, scraper: Scraper, store: Store, broker: Broker):
+    def __init__(self, service: Genius, scraper: Scraper, store: Store, broker: Broker, scraper_queue: str):
         self.service = service
         self.scraper = scraper
         self.store = store
         self.broker = broker
+        self.scraper_queue = scraper_queue
 
     def search_artists(self, artist_name: str):
         artists_found = self.service.search_artists(artist_name)
@@ -27,18 +28,18 @@ class Tasks:
             logger.info(f"Search Artists result: Name: {artist.name} GeniusArtistId: {artist.genius_artist_id})")
         self.store.save_artists(artists_found)
 
-    def get_artist_songs(self, artist_id: str, scraper_queue: str):
-        logger.info(f"Retrieving songs for artist_id: {artist_id}, scraper_queue: {scraper_queue}")
+    def get_artist_songs(self, artist_id: str):
+        logger.info(f"Retrieving songs for artist_id: {artist_id}")
         get_songs = self.service.artist_song_retriever(artist_id)
         batch: list[SongData] = []
         for song in get_songs:
             time.sleep(random.uniform(*_SLEEP_MIN_MAX))
             if len(batch) >= _STORE_WRITE_BATCH_SIZE:
-                self._save_songs_batch(batch, scraper_queue)
+                self._save_songs_batch(batch, self.scraper_queue)
             batch.append(song)
 
         if batch:
-            self._save_songs_batch(batch, scraper_queue)
+            self._save_songs_batch(batch, self.scraper_queue)
 
     def _save_songs_batch(self, songs: list[SongData], queue_name: str):
         self.store.save_songs(songs)
