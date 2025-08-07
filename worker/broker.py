@@ -10,6 +10,9 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.exceptions import AMQPConnectionError
 from pydantic import BaseModel, ConfigDict
 
+_CONNECTION_WAIT_TIME = 1  # seconds
+_CONNECTION_ATTEMPTS = 5  # number of attempts to connect
+
 logger = setup_logger(__name__)
 
 CallbackFunc = Callable[[str], None]
@@ -33,7 +36,7 @@ class Broker:
 
     def connect(self) -> BlockingChannel:
         parameters = URLParameters(self.broker_url)
-        attempts = 5
+        attempts = _CONNECTION_ATTEMPTS
         connection = None
 
         logger.info("Connecting process to RabbitMQ...")
@@ -41,14 +44,14 @@ class Broker:
             try:
                 connection = BlockingConnection(parameters)
                 if connection is None:
-                    time.sleep(1)
+                    time.sleep(_CONNECTION_WAIT_TIME)
                     continue
                 logger.info("✅ Connected to RabbitMQ")
                 break
             except AMQPConnectionError:
                 attempts -= 1
                 logger.info(f"AMQPConnectionError raised - attempts left {attempts}")
-                time.sleep(1)
+                time.sleep(_CONNECTION_WAIT_TIME)
         else:
             logger.info("❌ Could not connect to RabbitMQ after 5 tries — exiting")
             raise ConnectionError("Could not connect to RabbitMQ after 5 attempts")

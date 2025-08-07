@@ -1,4 +1,3 @@
-import time
 from datetime import date
 from typing import Generator
 
@@ -134,7 +133,6 @@ class Genius:
                 break
 
             page_no += 1
-            time.sleep(_SLEEP_LENGTH)
 
     def _get_song_data(self, song_response: dict) -> SongData | None:
         logger.info(f"Processing song: {song_response['title']} (ID: {song_response['id']})")
