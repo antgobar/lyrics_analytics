@@ -9,7 +9,6 @@ from common.models import ArtistData, SongData
 logger = setup_logger(__name__)
 
 
-_SLEEP_LENGTH = 0.2
 _REPLACE_PATTERNS = ("\u2014",)
 _TITLE_FILTERS = (
     "(",
