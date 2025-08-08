@@ -1,12 +1,12 @@
 import random
 import time
 
-from broker import Broker
-from genius import Genius
-from logger import setup_logger
-from models import SongData
-from scraper import Scraper
-from store import Store
+from common.logger import setup_logger
+from common.models import SongData
+from common.store import Store
+from worker.broker import Broker
+from worker.genius import Genius
+from worker.scraper import Scraper
 
 logger = setup_logger(__name__)
 
@@ -25,7 +25,7 @@ class Tasks:
     def search_artists(self, artist_name: str):
         artists_found = self.service.search_artists(artist_name)
         for artist in artists_found:
-            logger.info(f"Search Artists result: Name: {artist.name} GeniusArtistId: {artist.genius_artist_id})")
+            logger.info(f"Search Artists result: Name: {artist.name} GeniusArtistId: {artist.external_artist_id})")
         self.store.save_artists(artists_found)
 
     def get_artist_songs(self, artist_id: str):

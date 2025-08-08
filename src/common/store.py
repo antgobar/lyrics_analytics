@@ -1,5 +1,5 @@
-from logger import setup_logger
-from models import ArtistData, SongData
+from common.logger import setup_logger
+from common.models import ArtistData, SongData
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,16 +9,16 @@ logger = setup_logger(__name__)
 CREATE_ARTISTS_TABLE = """
     CREATE TABLE IF NOT EXISTS artists (
         id SERIAL PRIMARY KEY,
-        external_artist_id VARCHAR NOT NULL,
+        external_artist_id VARCHAR NOT NULL UNIQUE,
         name VARCHAR NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
+)
 """
 
 CREATE_SONGS_TABLE = """
     CREATE TABLE IF NOT EXISTS songs (
         id SERIAL PRIMARY KEY,
-        external_song_id VARCHAR NOT NULL,
+        external_song_id VARCHAR NOT NULL UNIQUE,
         name VARCHAR NOT NULL,
         external_artist_id VARCHAR NOT NULL,
         title VARCHAR NOT NULL,
@@ -33,11 +33,10 @@ CREATE_SONGS_TABLE = """
 CREATE_LYRICS_TABLE = """
     CREATE TABLE IF NOT EXISTS lyrics (
         id SERIAL PRIMARY KEY,
-        external_song_id VARCHAR NOT NULL,
+        external_song_id VARCHAR NOT NULL UNIQUE,
         lyrics TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (external_song_id) REFERENCES songs(external_song_id),
-        UNIQUE(song_id)
+        FOREIGN KEY (external_song_id) REFERENCES songs(external_song_id)
     )
 """
 
@@ -154,3 +153,13 @@ class Store:
         if self.engine:
             self.engine.dispose()
             logger.info("Database connection closed")
+
+    def list_artists(self):
+        try:
+            with self.engine.connect() as conn:
+                result = conn.execute(text("SELECT * FROM artists"))
+                for row in result:
+                    logger.info(row)
+        except SQLAlchemyError as e:
+            logger.error(f"❌ Error listing artists: {e}")
+            raise

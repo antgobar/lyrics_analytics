@@ -2,8 +2,9 @@ from datetime import date
 from typing import Generator
 
 import httpx
-from logger import setup_logger
-from models import ArtistData, SongData
+
+from common.logger import setup_logger
+from common.models import ArtistData, SongData
 
 logger = setup_logger(__name__)
 
@@ -61,7 +62,7 @@ class Genius:
     def _parse_artist_search_result(hit_result: dict, artist_name: str) -> ArtistData | None:
         if artist_name.lower() in hit_result["result"]["primary_artist"]["name"].lower():
             artist_data = hit_result["result"]["primary_artist"]
-            return ArtistData(genius_artist_id=artist_data["id"], name=artist_data["name"])
+            return ArtistData(external_artist_id=artist_data["id"], name=artist_data["name"])
 
     @staticmethod
     def _parse_date(date_data: dict | str) -> date:
@@ -109,7 +110,7 @@ class Genius:
             if artist_result["id"] in artists_ids:
                 continue
             logger.info(f"Found artist: {artist_result['name']} (ID: {artist_result['id']})")
-            artists_found.append(ArtistData(genius_artist_id=artist_result["id"], name=artist_result["name"]))
+            artists_found.append(ArtistData(external_artist_id=artist_result["id"], name=artist_result["name"]))
             artists_ids.add(artist_result["id"])
 
         return artists_found
@@ -145,7 +146,7 @@ class Genius:
             return None
         return SongData(
             name=song_response["primary_artist"]["name"],
-            genius_artist_id=song_response["primary_artist"]["id"],
+            external_song_id=song_response["primary_artist"]["id"],
             song_id=song_response["id"],
             title=song_response["title"],
             album=self._parse_album(song),

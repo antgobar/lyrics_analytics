@@ -1,16 +1,17 @@
 import json
 import time
+import traceback
 from collections.abc import Callable
 from threading import Thread
 from typing import Any
 
-from logger import setup_logger
 from pika import BlockingConnection, URLParameters
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.exceptions import AMQPConnectionError
 from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel, ConfigDict
-import traceback
+
+from common.logger import setup_logger
 
 _CONNECTION_WAIT_TIME = 1  # seconds
 _CONNECTION_ATTEMPTS = 5  # number of attempts to connect

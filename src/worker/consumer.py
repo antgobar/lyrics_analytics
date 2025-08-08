@@ -1,11 +1,11 @@
-from broker import Broker, Queue, provide_handler
-from config import Config
-from genius import Genius
-from logger import setup_logger
-from models import GetArtistSongsRequest, ScrapeSongLyricsRequest, SearchArtistRequest
-from scraper import Scraper
-from store import Store
-from tasks import Tasks
+from common.config import Config
+from common.logger import setup_logger
+from common.models import GetArtistSongsRequest, ScrapeSongLyricsRequest, SearchArtistRequest
+from common.store import Store
+from worker.broker import Broker, Queue, provide_handler
+from worker.genius import Genius
+from worker.scraper import Scraper
+from worker.tasks import Tasks
 
 logger = setup_logger(__name__)
 

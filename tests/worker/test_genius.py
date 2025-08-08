@@ -2,8 +2,8 @@ from unittest.mock import Mock, patch
 
 from httpx import Response
 
+from common.models import ArtistData
 from worker.genius import Genius
-from worker.models import ArtistData
 
 
 def test__genius_service__init():
