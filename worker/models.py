@@ -10,8 +10,8 @@ class BaseModel(Base):
 
 class SongData(BaseModel):
     name: str
-    genius_artist_id: str
-    song_id: str
+    external_artist_id: str
+    external_song_id: str
     title: str
     album: str | None
     release_date: date
@@ -19,7 +19,7 @@ class SongData(BaseModel):
 
 
 class ArtistData(BaseModel):
-    genius_artist_id: str
+    external_artist_id: str
     name: str
 
 

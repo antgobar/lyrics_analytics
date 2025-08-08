@@ -131,7 +131,6 @@ class Genius:
                 if song:
                     logger.info(f"Found song: {song.title} (ID: {song.song_id})")
                     yield song
-                
 
             if response["next_page"] is None:
                 break
