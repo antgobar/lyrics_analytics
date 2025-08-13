@@ -72,6 +72,12 @@
             <button type="submit">Search</button>
         </form>
     </div>
+    <div>
+        <h1>Artists in store</h1>
+        {% for artist in artists %}
+        <p>{{ artist.name }} ({{ artist.external_artist_id }})</p>
+        {% endfor %}
+    </div>
 </body>
 
 </html>

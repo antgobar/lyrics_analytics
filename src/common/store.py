@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+
 from common.logger import setup_logger
 from common.models import ArtistData, SongData
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine
-from sqlalchemy.exc import SQLAlchemyError
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Engine
 
 logger = setup_logger(__name__)
 
@@ -41,16 +46,16 @@ CREATE_LYRICS_TABLE = """
 """
 
 INSERT_ARTIST = """
-    INSERT INTO artists (external_artist_id, name) 
+    INSERT INTO artists (external_artist_id, name)
     VALUES (:external_artist_id, :name)
     ON CONFLICT (external_artist_id) DO NOTHING
 """
 
 INSERT_SONG = """
     INSERT INTO songs (
-        external_song_id, name, external_artist_id, title, 
+        external_song_id, name, external_artist_id, title,
         album, release_date, lyrics_url
-    ) 
+    )
     VALUES (
         :external_song_id, :name, :external_artist_id, :title,
         :album, :release_date, :lyrics_url
@@ -59,7 +64,7 @@ INSERT_SONG = """
 """
 
 INSERT_LYRICS = """
-    INSERT INTO lyrics (external_song_id, lyrics) 
+    INSERT INTO lyrics (external_song_id, lyrics)
     VALUES (:external_song_id, :lyrics)
     ON CONFLICT (external_song_id) DO NOTHING
 """
@@ -85,8 +90,8 @@ class Store:
                 conn.commit()
                 logger.info("✅ Database tables created/verified successfully")
 
-        except SQLAlchemyError as e:
-            logger.error(f"❌ Error creating tables: {e}")
+        except SQLAlchemyError:
+            logger.exception("❌ Error creating tables")
             raise
 
     def save_artists(self, artists: list[ArtistData]):
@@ -101,10 +106,10 @@ class Store:
                         {"external_artist_id": artist.external_artist_id, "name": artist.name},
                     )
                 conn.commit()
-                logger.info(f"✅ Saved {len(artists)} artists to database")
+                logger.info("✅ Saved %d artists to database", len(artists))
 
-        except SQLAlchemyError as e:
-            logger.error(f"❌ Error saving artists: {e}")
+        except SQLAlchemyError:
+            logger.exception("❌ Error saving artists")
             raise
 
     def save_songs(self, songs: list[SongData]):
@@ -127,10 +132,10 @@ class Store:
                         },
                     )
                 conn.commit()
-                logger.info(f"✅ Saved {len(songs)} songs to database")
+                logger.info("✅ Saved %d songs to database", len(songs))
 
-        except SQLAlchemyError as e:
-            logger.error(f"❌ Error saving songs: {e}")
+        except SQLAlchemyError:
+            logger.exception("❌ Error saving songs")
             raise
 
     def save_lyrics(self, external_song_id: str, lyrics: str):
@@ -145,8 +150,8 @@ class Store:
                 )
                 conn.commit()
 
-        except SQLAlchemyError as e:
-            logger.error(f"❌ Error saving lyrics for external_song_id {external_song_id}: {e}")
+        except SQLAlchemyError:
+            logger.exception("❌ Error saving lyrics for external_song_id %s", external_song_id)
             raise
 
     def close(self):
@@ -154,12 +159,14 @@ class Store:
             self.engine.dispose()
             logger.info("Database connection closed")
 
-    def list_artists(self):
+    def list_artists(self) -> list[ArtistData]:
         try:
             with self.engine.connect() as conn:
                 result = conn.execute(text("SELECT * FROM artists"))
-                for row in result:
-                    logger.info(row)
+                return [ArtistData(**row) for row in result.mappings().all()]
         except SQLAlchemyError as e:
-            logger.error(f"❌ Error listing artists: {e}")
-            raise
+            logger.exception("❌ Error listing artists")
+            raise ListArtistError from e
+
+
+class ListArtistError(Exception): ...

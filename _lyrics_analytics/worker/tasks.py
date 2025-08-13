@@ -3,9 +3,9 @@ from dataclasses import asdict
 from celery import shared_task
 from celery.contrib.abortable import AbortableTask
 
-from lyrics_analytics.config import Config
-from lyrics_analytics.database.queries import TaskQueries
-from lyrics_analytics.services.genius import GeniusService
+from _lyrics_analytics.config import Config
+from _lyrics_analytics.database.queries import TaskQueries
+from _lyrics_analytics.services.genius import GeniusService
 
 
 task_queries = TaskQueries()

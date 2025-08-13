@@ -22,7 +22,13 @@ dev = ["pytest>=8.4.1"]
 
 [tool.ruff]
 line-length = 120
+exclude = ["_lyrics_analytics"]
 
+preview = true
+
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

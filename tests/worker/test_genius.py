@@ -2,8 +2,8 @@ from unittest.mock import Mock, patch
 
 from httpx import Response
 
-from common.models import ArtistData
-from worker.genius import Genius
+from src.common.models import ArtistData
+from src.worker.genius import Genius
 
 
 def test__genius_service__init():
@@ -11,8 +11,8 @@ def test__genius_service__init():
     access_token = "test_access_token"
     genius_service = Genius(base_url, access_token)
 
-    assert genius_service._base_url == base_url
-    assert genius_service._base_params == {"access_token": access_token}
+    assert genius_service.base_url == base_url
+    assert genius_service.base_params == {"access_token": access_token}
 
 
 @patch("worker.genius.httpx.get")
@@ -21,7 +21,8 @@ def test__genius_service__make_request__successful_request__returns_response(moc
     access_token = "test_access_token"
     genius_service = Genius(base_url, access_token)
     mock_get.return_value = Response(
-        status_code=200, json={"response": {"artist": "Justin Bieber"}, "meta": {"status": 200}}
+        status_code=200,
+        json={"response": {"artist": "Justin Bieber"}, "meta": {"status": 200}},
     )
 
     response = genius_service.make_request("test_endpoint")

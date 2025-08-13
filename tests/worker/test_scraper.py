@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from worker.scraper import Scraper
+from src.worker.scraper import Scraper
 
 
 @patch("worker.scraper.BeautifulSoup")

@@ -2,9 +2,9 @@ import os
 
 from flask import Flask
 
-from lyrics_analytics.config import Config, DevelopmentConfig, ProductionConfig
-from lyrics_analytics.worker.worker import make_celery
-from lyrics_analytics.database.queries import AdminQueries
+from _lyrics_analytics.config import Config, DevelopmentConfig, ProductionConfig
+from _lyrics_analytics.worker.worker import make_celery
+from _lyrics_analytics.database.queries import AdminQueries
 
 
 def create_app():
@@ -24,7 +24,7 @@ def create_app():
     celery_app = make_celery(flask_app)
     celery_app.set_default()
 
-    from lyrics_analytics.api.routes import admin, auth, reports, search, user
+    from _lyrics_analytics.api.routes import admin, auth, reports, search, user
 
     flask_app.register_blueprint(search.bp)
     flask_app.register_blueprint(auth.bp)

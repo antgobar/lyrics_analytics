@@ -2,8 +2,8 @@ import pandas as pd
 from bson.objectid import ObjectId
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from lyrics_analytics.config import Config
-from lyrics_analytics.database.db import DbClient, parse_mongo
+from _lyrics_analytics.config import Config
+from _lyrics_analytics.database.db import DbClient, parse_mongo
 
 client = DbClient()
 

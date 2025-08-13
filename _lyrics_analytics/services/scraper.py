@@ -4,7 +4,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from lyrics_analytics.services.constants import REPLACE_CHARS
+from _lyrics_analytics.services.constants import REPLACE_CHARS
 
 
 class Scraper:

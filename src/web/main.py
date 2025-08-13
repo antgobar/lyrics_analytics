@@ -1,18 +1,21 @@
-import os
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-CURRENT_DIRECTORY = os.getcwd()
-templates = Jinja2Templates(directory=os.path.join(CURRENT_DIRECTORY, "src", "templates"))
-static_files = StaticFiles(directory=os.path.join(CURRENT_DIRECTORY, "src", "static"))
+from common.config import Config
+from common.store import Store
+
+CURRENT_DIRECTORY = Path.cwd()
+templates = Jinja2Templates(directory=CURRENT_DIRECTORY / "src" / "templates")
+static_files = StaticFiles(directory=CURRENT_DIRECTORY / "src" / "static")
 
 
 app = FastAPI()
-
+app.mount("/static", static_files, name="static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,8 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-app.mount("/static", static_files, name="static")
+store = Store(Config.DATABASE_URL)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -31,5 +33,13 @@ async def favicon():
 
 
 @app.get("/")
-def read_root():
-    return templates.TemplateResponse("index.html", {"request": {}})
+async def index(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "artists": store.list_artists()},
+    )
+
+
+@app.post("/search-artists")
+async def search_artists(request: Request):
+    await request.form()

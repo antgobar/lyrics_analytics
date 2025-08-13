@@ -2,8 +2,8 @@ import os
 
 from flask import Blueprint, session, render_template, url_for, flash
 
-from lyrics_analytics.api.routes.auth import login_required
-from lyrics_analytics.database.queries import UserQueries
+from _lyrics_analytics.api.routes.auth import login_required
+from _lyrics_analytics.database.queries import UserQueries
 
 
 BASE = os.path.basename(__file__).split(".")[0]

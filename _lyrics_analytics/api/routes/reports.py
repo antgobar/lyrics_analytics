@@ -2,9 +2,9 @@ import os
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
-from lyrics_analytics.api.routes.auth import login_required
-from lyrics_analytics.database.queries import ReportsQueries
-from lyrics_analytics.services.reporting import create_histogram
+from _lyrics_analytics.api.routes.auth import login_required
+from _lyrics_analytics.database.queries import ReportsQueries
+from _lyrics_analytics.services.reporting import create_histogram
 
 
 BASE = os.path.basename(__file__).split(".")[0]

@@ -2,8 +2,8 @@ import os
 
 from flask import Blueprint, redirect, render_template, request, url_for
 
-from lyrics_analytics.api.routes.auth import admin_only
-from lyrics_analytics.database.queries import AdminQueries
+from _lyrics_analytics.api.routes.auth import admin_only
+from _lyrics_analytics.database.queries import AdminQueries
 
 BASE = os.path.basename(__file__).split(".")[0]
 bp = Blueprint(BASE, __name__, url_prefix=f"/{BASE}")
@@ -39,7 +39,7 @@ def transfer_between_deployments():
 
     from pymongo import MongoClient
 
-    from lyrics_analytics.config import Config
+    from _lyrics_analytics.config import Config
 
     db_name = "LyricStats"
 

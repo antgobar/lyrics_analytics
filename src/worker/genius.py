@@ -1,5 +1,5 @@
+from collections.abc import Generator
 from datetime import date
-from typing import Generator
 
 import httpx
 
@@ -27,22 +27,22 @@ _TITLE_FILTERS = (
 
 
 class Genius:
-    def __init__(self, _base_url: str, access_token: str) -> None:
-        self._base_url = _base_url
-        self._base_params = {"access_token": access_token}
+    def __init__(self, base_url: str, access_token: str) -> None:
+        self.base_url = base_url
+        self.base_params = {"access_token": access_token}
 
     def make_request(self, endpoint: str, params: dict | None = None) -> dict | None:
+        def raise_connection_error():
+            raise httpx.HTTPError("Unable to connect")
+
         try:
-            if params is None:
-                params = self._base_params
-            else:
-                params = {**self._base_params, **params}
-            response = httpx.get(url=f"{self._base_url}/{endpoint}", params=params)
+            params = self.base_params if params is None else {**self.base_params, **params}
+            response = httpx.get(url=f"{self.base_url}/{endpoint}", params=params)
             if response.status_code == 200 and response.json()["meta"]["status"] == 200:
                 return response.json()["response"]
-            raise httpx.HTTPError("Unable to connect")
+            raise_connection_error()
         except httpx.HTTPError as e:
-            logger.error(f"HTTP error occurred: {e}")
+            logger.info("HTTP error occurred: %s", e)
             return None
 
     def _search_artist(self, artist_name: str) -> dict | None:
@@ -62,6 +62,7 @@ class Genius:
         if artist_name.lower() in hit_result["result"]["primary_artist"]["name"].lower():
             artist_data = hit_result["result"]["primary_artist"]
             return ArtistData(external_artist_id=artist_data["id"], name=artist_data["name"])
+        return None
 
     @staticmethod
     def _parse_date(date_data: dict | str) -> date:
@@ -97,7 +98,7 @@ class Genius:
     def search_artists(self, artist_name: str) -> list[ArtistData]:
         response = self._search_artist(artist_name)
         if response is None:
-            logger.info(f"Not found: {artist_name}")
+            logger.info("Not found: %s", artist_name)
             return []
 
         artists_found = []
@@ -108,7 +109,7 @@ class Genius:
                 continue
             if artist_result["id"] in artists_ids:
                 continue
-            logger.info(f"Found artist: {artist_result['name']} (ID: {artist_result['id']})")
+            logger.info("Found artist: %s (ID: %s)", artist_result["name"], artist_result["id"])
             artists_found.append(ArtistData(external_artist_id=artist_result["id"], name=artist_result["name"]))
             artists_ids.add(artist_result["id"])
 
@@ -116,20 +117,20 @@ class Genius:
 
     def artist_song_retriever(self, artist_id: str) -> Generator[SongData]:
         artist_name = self._get_artist_name(artist_id)["artist"]["name"].lower()
-        logger.info(f"Retrieving songs for artist: {artist_name} (ID: {artist_id})")
+        logger.info("Retrieving songs for artist: %s (ID: %s)", artist_name, artist_id)
         page_no = 1
 
         while True:
             response = self._get_artist_song_page(artist_id, page_no)
             if response is None:
-                logger.error(f"Failed to retrieve songs for artist ID: {artist_id}")
+                logger.error("Failed to retrieve songs for artist ID: %s", artist_id)
                 break
             for song_data in response["songs"]:
                 song = self._parse_song(song_data, artist_name)
                 if song is None:
-                    logger.info(f"Skipping song: {song_data['title']} (ID: {song_data['id']})")
+                    logger.info("Skipping song: %s (ID: %s)", song_data["title"], song_data["id"])
                 if song:
-                    logger.info(f"Found song: {song.title} (ID: {song.song_id})")
+                    logger.info("Found song: %s (ID: %s)", song.title, song.song_id)
                     yield song
 
             if response["next_page"] is None:
@@ -138,10 +139,10 @@ class Genius:
             page_no += 1
 
     def _get_song_data(self, song_response: dict) -> SongData | None:
-        logger.info(f"Processing song: {song_response['title']} (ID: {song_response['id']})")
+        logger.info("Processing song: %s (ID: %s)", song_response["title"], song_response["id"])
         song = self._get_song(song_response["id"])
         if song is None:
-            logger.error(f"Failed to retrieve song data for ID: {song_response['id']}")
+            logger.error("Failed to retrieve song data for ID: %s", song_response["id"])
             return None
         return SongData(
             name=song_response["primary_artist"]["name"],
@@ -157,8 +158,4 @@ class Genius:
         for pattern in _REPLACE_PATTERNS:
             title = title.replace(pattern, " ")
 
-        for pattern in _TITLE_FILTERS:
-            if pattern in title:
-                return False
-
-        return True
+        return all(pattern not in title for pattern in _TITLE_FILTERS)

@@ -12,7 +12,7 @@ class Scraper:
         page = httpx.get(url)
         page_content = page.content.decode().replace("<br/>", "\n").encode()
         html = BeautifulSoup(page_content, "html.parser")
-        div = html.find("div", class_=re.compile("^lyrics$|Lyrics__Root"))
+        div = html.find("div", class_=re.compile(r"^lyrics$|Lyrics__Root"))
         if div is None:
             return ""
         return div.get_text()
@@ -20,7 +20,7 @@ class Scraper:
     @staticmethod
     def clean(lyrics: str) -> str:
         lyrics = re.sub(r"(\[.*?])*", "", lyrics)
-        lyrics = re.sub("\n{2}", "\n", lyrics)
+        lyrics = re.sub(r"\n{2}", "\n", lyrics)
         lyrics = lyrics.strip("\n").lower()
 
         for char in _REPLACE_CHARS:
@@ -41,4 +41,3 @@ class Scraper:
 
 if __name__ == "__main__":
     lyrics = Scraper.get_lyrics("https://genius.com/Lukas-graham-7-years-lyrics")
-    print(lyrics)

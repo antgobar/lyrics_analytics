@@ -12,7 +12,7 @@ from pymongo.results import (
     UpdateResult,
 )
 
-from lyrics_analytics.config import Config
+from _lyrics_analytics.config import Config
 
 
 TO_SERIALISE = [

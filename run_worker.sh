@@ -1,1 +1,1 @@
-PYTHONPATH=src python -m worker.consumer
+PYTHONPATH=src python -m worker.main
