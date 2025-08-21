@@ -168,5 +168,17 @@ class Store:
             logger.exception("❌ Error listing artists")
             raise ListArtistError from e
 
+    def search_artists(self, artist_name: str) -> list[ArtistData]:
+        try:
+            with self.engine.connect() as conn:
+                result = conn.execute(
+                    text("SELECT * FROM artists WHERE name ILIKE :name"),
+                    {"name": f"%{artist_name}%"},
+                )
+                return [ArtistData(**row) for row in result.mappings().all()]
+        except SQLAlchemyError as e:
+            logger.exception("❌ Error searching artists")
+            raise ListArtistError from e
+
 
 class ListArtistError(Exception): ...

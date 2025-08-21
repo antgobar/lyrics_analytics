@@ -1,20 +1,15 @@
 import json
-import time
 import traceback
 from collections.abc import Callable
 from threading import Thread
-from typing import Any, Protocol
+from typing import Protocol
 
-from pika import BlockingConnection, URLParameters
 from pika.adapters.blocking_connection import BlockingChannel
-from pika.exceptions import AMQPConnectionError
 from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel
 
+from common.broker import Connection
 from common.logger import setup_logger
-
-_CONNECTION_WAIT_TIME_S = 1
-_CONNECTION_ATTEMPTS = 5
 
 logger = setup_logger(__name__)
 
@@ -34,35 +29,6 @@ class Consumer:
         self.queue_name = queue_name
         self.handler = handler
         self.channel: BlockingChannel | None = None
-
-
-class Connection:
-    def __init__(self, broker_url: str):
-        self.broker_url = broker_url
-
-    def connect(self) -> BlockingChannel:
-        parameters = URLParameters(self.broker_url)
-        attempts = _CONNECTION_ATTEMPTS
-        connection = None
-
-        logger.info("Connecting process to RabbitMQ...")
-        while attempts > 0:
-            try:
-                connection = BlockingConnection(parameters)
-                if connection is None:
-                    time.sleep(_CONNECTION_WAIT_TIME_S)
-                    continue
-                logger.info("✅ Connected to RabbitMQ")
-                break
-            except AMQPConnectionError:
-                attempts -= 1
-                logger.info("AMQPConnectionError raised - attempts left %s", attempts)
-                time.sleep(_CONNECTION_WAIT_TIME_S)
-        else:
-            logger.info("❌ Could not connect to RabbitMQ after 5 tries — exiting")
-            raise ConnectionError("Could not connect to RabbitMQ after 5 attempts")
-
-        return connection.channel()
 
 
 class Subscriber:
@@ -117,31 +83,3 @@ class Subscriber:
                 ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
         return handler
-
-
-class Producer:
-    def __init__(self, queue_name: str):
-        self.queue_name = queue_name
-        self.channel: BlockingChannel | None = None
-
-
-class Publisher:
-    def __init__(self, connection: Connection):
-        self.connection = connection
-        self.producers: list[Producer] = []
-
-    def register_producers(self, producers: list[Producer]):
-        for producer in producers:
-            producer.channel = self.connection
-            self.producers.append(producer)
-
-    def send_message(self, queue_name: str, body: dict[str, Any]):
-        queue = next((q for q in self.producers if q.queue_name == queue_name), None)
-        if not queue:
-            raise ValueError(f"Queue {queue_name} not registered")
-
-        try:
-            queue.channel.queue_declare(queue=queue_name, durable=True)
-            queue.channel.basic_publish(exchange="", routing_key=queue_name, body=json.dumps(body).encode("utf-8"))
-        finally:
-            queue.channel.close()

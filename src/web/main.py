@@ -6,7 +6,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from common.broker import Connection
 from common.config import Config
+from common.publisher import Producer, Publisher
 from common.store import Store
 
 CURRENT_DIRECTORY = Path.cwd()
@@ -24,7 +26,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+connection = Connection(Config.BROKER_URL)
 store = Store(Config.DATABASE_URL)
+
+publisher = Publisher(connection)
+publisher.register_producers([Producer(queue_name=Config.QUEUE_SEARCH_ARTISTS)])
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -40,6 +46,18 @@ async def index(request: Request):
     )
 
 
-@app.post("/search-artists")
+@app.post("/search-artist")
 async def search_artists(request: Request):
-    await request.form()
+    form_data = await request.form()
+    artist_name = form_data.get("artist-name")
+    if not artist_name:
+        return templates.TemplateResponse(
+            "search-artist-result.html",
+            {"request": request, "found_artists": []},
+        )
+
+    publisher.send_message(Config.QUEUE_SEARCH_ARTISTS, {"artist_name": artist_name})
+    return templates.TemplateResponse(
+        "search-artist-result.html",
+        {"request": request, "found_artists": store.search_artists(artist_name)},
+    )

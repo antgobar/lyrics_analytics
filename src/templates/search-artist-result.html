@@ -1,0 +1,7 @@
+{% if found_artists %}
+{% for artist in found_artists %}
+<p>{{ artist.name }} ({{ artist.external_artist_id }})</p>
+{% endfor %}
+{% else %}
+<p>No artists found.</p>
+{% endif %}

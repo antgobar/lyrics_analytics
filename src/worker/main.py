@@ -1,16 +1,18 @@
+from common.broker import Connection
 from common.config import Config
 from common.logger import setup_logger
 from common.models import GetArtistSongsRequest, ScrapeSongLyricsRequest, SearchArtistRequest
+from common.publisher import Producer, Publisher
 from common.store import Store
-from worker.broker import Connection, Consumer, Producer, Publisher, Subscriber
 from worker.genius import Genius
 from worker.scraper import Scraper
+from worker.subscriber import Consumer, Subscriber
 from worker.tasks import Tasks
 
 logger = setup_logger(__name__)
 
 
-def consume():
+def run():
     genius = Genius(Config.GENIUS_BASE_URL, Config.GENIUS_CLIENT_ACCESS_TOKEN)
     store = Store(Config.DATABASE_URL)
     broker = Connection(Config.BROKER_URL)
@@ -47,4 +49,4 @@ def consume():
 
 
 if __name__ == "__main__":
-    consume()
+    run()
