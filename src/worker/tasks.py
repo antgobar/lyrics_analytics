@@ -9,7 +9,7 @@ from worker.scraper import Scraper
 
 logger = setup_logger(__name__)
 
-_STORE_WRITE_BATCH_SIZE = 50
+_STORE_WRITE_BATCH_SIZE = 2
 _SLEEP_MIN_MAX = (1, 2)
 
 
@@ -22,7 +22,7 @@ class Store(Protocol):
 
 
 class Publisher(Protocol):
-    def send_message(self: str, message: dict[str, Any]): ...
+    def send_message(self: str, body: dict[str, Any]): ...
 
 
 class Tasks:
@@ -61,11 +61,11 @@ class Tasks:
         for song in songs:
             self.publisher.send_message(
                 queue_name=queue_name,
-                message={"lyrics_url": song.lyrics_url, "song_id": song.external_song_id},
+                body={"lyrics_url": song.lyrics_url, "song_id": song.external_song_id},
             )
 
-    def scrape_lyrics(self, song_id: str, song_url: str):
+    def scrape_lyrics(self, song_id: str, lyrics_url: str):
         time.sleep(random.uniform(*_SLEEP_MIN_MAX))  # noqa: S311
-        lyrics = self.scraper.get_lyrics(song_url)
-        logger.info("Scraped Lyrics for song URL: %s, Lyrics: %s...", song_url, lyrics[:50])
+        lyrics = self.scraper.get_lyrics(lyrics_url)
+        logger.info("Scraped Lyrics for song URL: %s, Lyrics: %s...", lyrics_url, lyrics[:50])
         self.store.save_lyrics(song_id, lyrics)

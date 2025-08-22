@@ -21,6 +21,7 @@ class SongData(BaseModel):
 class ArtistData(BaseModel):
     external_artist_id: str
     name: str
+    song_count: int | None = None
 
 
 class SearchArtistRequest(BaseModel):
@@ -33,4 +34,4 @@ class GetArtistSongsRequest(BaseModel):
 
 class ScrapeSongLyricsRequest(BaseModel):
     song_id: str
-    song_url: str
+    lyrics_url: str

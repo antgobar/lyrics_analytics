@@ -172,7 +172,15 @@ class Store:
         try:
             with self.engine.connect() as conn:
                 result = conn.execute(
-                    text("SELECT * FROM artists WHERE name ILIKE :name"),
+                    text("""
+                        SELECT 
+                            a.*, 
+                            COUNT(s.id) AS song_count
+                        FROM artists a
+                        LEFT JOIN songs s ON a.external_artist_id = s.external_artist_id
+                        WHERE a.name ILIKE :name
+                        GROUP BY a.id, a.external_artist_id, a.name, a.created_at
+                    """),
                     {"name": f"%{artist_name}%"},
                 )
                 return [ArtistData(**row) for row in result.mappings().all()]

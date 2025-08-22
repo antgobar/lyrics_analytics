@@ -1,7 +1,24 @@
 {% if found_artists %}
-{% for artist in found_artists %}
-<p>{{ artist.name }} ({{ artist.external_artist_id }})</p>
-{% endfor %}
+<table>
+    <thead>
+        <tr>
+            <th>Artist Name</th>
+            <th>Song Count</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for artist in found_artists %}
+        <tr>
+            <td>{{ artist.name }} ({{ artist.external_artist_id }})</td>
+            <td>{{ artist.song_count }}</td>
+            <td>
+                <button hx-post="/search-lyrics/{{ artist.external_artist_id }}">Fetch Lyrics</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% else %}
 <p>No artists found.</p>
 {% endif %}

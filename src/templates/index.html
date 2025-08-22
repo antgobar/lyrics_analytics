@@ -15,12 +15,6 @@
             hx-post="/search-artist" hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
             hx-target="#search-results">
     </div>
-    <div>
-        <h1>Artists in store</h1>
-        {% for artist in artists %}
-        <p>{{ artist.name }} ({{ artist.external_artist_id }})</p>
-        {% endfor %}
-    </div>
     <div id="search-results"></div>
 </body>
 

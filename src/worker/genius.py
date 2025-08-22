@@ -130,7 +130,7 @@ class Genius:
                 if song is None:
                     logger.info("Skipping song: %s (ID: %s)", song_data["title"], song_data["id"])
                 if song:
-                    logger.info("Found song: %s (ID: %s)", song.title, song.song_id)
+                    logger.info("Found song: %s (ID: %s)", song.title, song.external_song_id)
                     yield song
 
             if response["next_page"] is None:
@@ -146,8 +146,8 @@ class Genius:
             return None
         return SongData(
             name=song_response["primary_artist"]["name"],
-            external_song_id=song_response["primary_artist"]["id"],
-            song_id=song_response["id"],
+            external_artist_id=song_response["primary_artist"]["id"],
+            external_song_id=song_response["id"],
             title=song_response["title"],
             album=self._parse_album(song),
             release_date=self._parse_date(song_response.get("release_date_components")),
