@@ -8,8 +8,8 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel
 
-from common.broker import Connection
-from common.logger import setup_logger
+from services.broker import Connection
+from services.logger import setup_logger
 
 logger = setup_logger(__name__)
 

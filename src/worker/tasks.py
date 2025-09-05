@@ -2,8 +2,9 @@ import random
 import time
 from typing import Any, Protocol
 
-from common.logger import setup_logger
-from common.models import ArtistData, SongData
+from services.cache.repository import Cache
+from services.logger import setup_logger
+from services.models import ArtistData, SongData
 from worker.genius import Genius
 from worker.scraper import Scraper
 
@@ -26,12 +27,21 @@ class Publisher(Protocol):
 
 
 class Tasks:
-    def __init__(self, service: Genius, scraper: Scraper, store: Store, publisher: Publisher, scraper_queue: str):
+    def __init__(
+        self,
+        service: Genius,
+        scraper: Scraper,
+        store: Store,
+        publisher: Publisher,
+        scraper_queue: str,
+        cache: Cache,
+    ):
         self.service = service
         self.scraper = scraper
         self.store = store
         self.publisher = publisher
         self.scraper_queue = scraper_queue
+        self.cache = cache
 
     def search_artists(self, artist_name: str):
         artists_found = self.service.search_artists(artist_name)
@@ -42,6 +52,10 @@ class Tasks:
                 artist.external_artist_id,
             )
         self.store.save_artists(artists_found)
+        self.cache.cache_artist_ids_for_search_term(
+            artist_name,
+            [a.external_artist_id for a in artists_found],
+        )
 
     def get_artist_songs(self, artist_id: str):
         logger.info("Retrieving songs for artist_id: %s", artist_id)

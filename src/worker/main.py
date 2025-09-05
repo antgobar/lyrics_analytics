@@ -1,9 +1,9 @@
-from common.broker import Connection
-from common.config import Config
-from common.logger import setup_logger
-from common.models import GetArtistSongsRequest, ScrapeSongLyricsRequest, SearchArtistRequest
-from common.publisher import Producer, Publisher
-from common.store import Store
+from services.broker import Connection
+from services.logger import setup_logger
+from services.models import GetArtistSongsRequest, ScrapeSongLyricsRequest, SearchArtistRequest
+from services.publisher import Producer, Publisher
+from services.store import Store
+from src.config import Config
 from worker.genius import Genius
 from worker.scraper import Scraper
 from worker.subscriber import Consumer, Subscriber

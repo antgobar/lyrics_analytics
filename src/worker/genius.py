@@ -3,8 +3,8 @@ from datetime import date
 
 import httpx
 
-from common.logger import setup_logger
-from common.models import ArtistData, SongData
+from services.logger import setup_logger
+from services.models import ArtistData, SongData
 
 logger = setup_logger(__name__)
 

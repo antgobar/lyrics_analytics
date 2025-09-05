@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class Cache(Protocol):
+    def get_artist_ids_from_search_term(self, search_term: str) -> list[str]: ...
+    def cache_artist_ids_for_search_term(self, search_term: str, artist_ids: list[str]) -> None: ...

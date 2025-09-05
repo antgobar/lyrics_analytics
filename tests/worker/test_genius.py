@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 from httpx import Response
 
-from src.common.models import ArtistData
+from src.services.models import ArtistData
 from src.worker.genius import Genius
 
 

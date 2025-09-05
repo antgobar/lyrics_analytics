@@ -23,6 +23,9 @@ class ArtistData(BaseModel):
     name: str
     song_count: int | None = None
 
+    def artist_id(self) -> str:
+        return self.external_artist_id
+
 
 class SearchArtistRequest(BaseModel):
     artist_name: str

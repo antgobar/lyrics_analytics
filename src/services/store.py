@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
-from common.logger import setup_logger
-from common.models import ArtistData, SongData
+from services.logger import setup_logger
+from services.models import ArtistData, SongData
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine

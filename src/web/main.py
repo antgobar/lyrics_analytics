@@ -6,10 +6,10 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from common.broker import Connection
-from common.config import Config
-from common.publisher import Producer, Publisher
-from common.store import Store
+from services.broker import Connection
+from src.config import Config
+from services.publisher import Producer, Publisher
+from services.store import Store
 
 CURRENT_DIRECTORY = Path.cwd()
 templates = Jinja2Templates(directory=CURRENT_DIRECTORY / "src" / "templates")
