@@ -2,15 +2,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.worker.scraper import Scraper
+from services.scraper.genius import GeniusScraper
 
 
-@patch("worker.scraper.BeautifulSoup")
-@patch("worker.scraper.httpx.get")
+@patch("services.scraper.genius.BeautifulSoup")
+@patch("services.scraper.genius.httpx.get")
 def test__scraper__scrape(mock_get: Mock, mock_bs: Mock):
     mock_get.return_value.content = b"content"
 
-    Scraper.get_lyrics("some_url")
+    GeniusScraper.get_lyrics("some_url")
 
     mock_bs.assert_called_with(b"content", "html.parser")
 
@@ -27,4 +27,4 @@ def test__scraper__scrape(mock_get: Mock, mock_bs: Mock):
     ],
 )
 def test_scraper_clean(lyric, expected):
-    assert Scraper.clean(lyric) == expected
+    assert GeniusScraper.clean(lyric) == expected

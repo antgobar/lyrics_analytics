@@ -12,7 +12,7 @@ _CONNECTION_ATTEMPTS = 5
 logger = setup_logger(__name__)
 
 
-class Connection:
+class RabbitMQBroker:
     def __init__(self, broker_url: str):
         self.broker_url = broker_url
 

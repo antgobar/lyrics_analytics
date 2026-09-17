@@ -3,7 +3,7 @@ from typing import Type
 from pika.adapters.blocking_connection import BlockingChannel
 from pydantic import BaseModel
 
-from services.broker import Connection
+from services.broker import Broker
 
 
 class Producer:
@@ -14,14 +14,13 @@ class Producer:
 
 
 class Publisher:
-    def __init__(self, connection: Connection):
+    def __init__(self, connection: Broker):
         self.connection = connection
         self.producers: list[Producer] = []
 
-    def register_producers(self, producers: list[Producer]):
-        for producer in producers:
-            producer.channel = self.connection.connect()
-            self.producers.append(producer)
+    def register_producer(self, producer: Producer):
+        producer.channel = self.connection.connect()
+        self.producers.append(producer)
 
     def send_message(self, queue_name: str, data: BaseModel):
         producer = next((q for q in self.producers if q.queue_name == queue_name), None)

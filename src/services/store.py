@@ -188,5 +188,30 @@ class Store:
             logger.exception("❌ Error searching artists")
             raise ListArtistError from e
 
+    def get_artists_by_id(self, artist_ids: list[str]) -> list[ArtistData]:
+        try:
+            with self.engine.connect() as conn:
+                result = conn.execute(
+                    text("SELECT * FROM artists WHERE external_artist_id IN :external_artist_ids"),
+                    {"external_artist_ids": artist_ids},
+                )
+                return [ArtistData(**row) for row in result.mappings().all()]
+        except SQLAlchemyError as e:
+            logger.exception("❌ Error getting artists by ids")
+            raise ListArtistError from e
+
+    def get_artist_by_id(self, artist_id: str) -> ArtistData | None:
+        try:
+            with self.engine.connect() as conn:
+                result = conn.execute(
+                    text("SELECT * FROM artists WHERE external_artist_id = :external_artist_id"),
+                    {"external_artist_id": artist_id},
+                )
+                row = result.mappings().first()
+                return ArtistData(**row) if row else None
+        except SQLAlchemyError as e:
+            logger.exception("❌ Error getting artist by id")
+            raise ListArtistError from e
+
 
 class ListArtistError(Exception): ...

@@ -1,50 +1,52 @@
-from services.broker import Connection
-from services.logger import setup_logger
+from config import Config
+from services.broker import RabbitMQBroker
+from services.broker.publisher import Producer, Publisher
+from services.broker.subscriber import Consumer, Subscriber
+from services.cache import ValkeyCache
 from services.models import GetArtistSongsRequest, ScrapeSongLyricsRequest, SearchArtistRequest
-from services.publisher import Producer, Publisher
+from services.retrieval.genius import GeniusRetrieval
+from services.scraper import GeniusScraper
 from services.store import Store
-from src.config import Config
-from worker.genius import Genius
-from worker.scraper import Scraper
-from worker.subscriber import Consumer, Subscriber
-from worker.tasks import Tasks
-
-logger = setup_logger(__name__)
+from worker.tasks import get_artist_songs_task, scrape_lyrics_task, search_artists_task
 
 
 def run():
-    genius = Genius(Config.GENIUS_BASE_URL, Config.GENIUS_CLIENT_ACCESS_TOKEN)
+    retrieval = GeniusRetrieval(Config.GENIUS_API_BASE_URL, Config.GENIUS_CLIENT_ACCESS_TOKEN)
     store = Store(Config.DATABASE_URL)
-    broker = Connection(Config.BROKER_URL)
+    broker = RabbitMQBroker(Config.BROKER_URL)
     subscriber = Subscriber(broker)
     publisher = Publisher(broker)
-    scraper = Scraper()
-    tasks = Tasks(
-        service=genius,
-        store=store,
-        scraper=scraper,
-        publisher=publisher,
-        scraper_queue=Config.QUEUE_SCRAPE_LYRICS_URL,
+    scraper = GeniusScraper()
+    cache = ValkeyCache(connection_url=Config.CACHE_URL)
+
+    publisher.register_producer(Producer(queue_name=Config.QUEUE_SCRAPE_LYRICS_URL))
+
+    subscriber.register_consumer(
+        Consumer(
+            queue_name=Config.QUEUE_SEARCH_ARTISTS,
+            handler=subscriber.provide_handler(
+                search_artists_task(retrieval=retrieval, store=store, cache=cache), SearchArtistRequest
+            ),
+        )
+    )
+    subscriber.register_consumer(
+        Consumer(
+            queue_name=Config.QUEUE_GET_ARTIST_SONGS,
+            handler=subscriber.provide_handler(
+                get_artist_songs_task(retrieval, store, publisher, Config.QUEUE_SCRAPE_LYRICS_URL),
+                GetArtistSongsRequest,
+            ),
+        )
+    )
+    subscriber.register_consumer(
+        Consumer(
+            queue_name=Config.QUEUE_SCRAPE_LYRICS_URL,
+            handler=subscriber.provide_handler(
+                scrape_lyrics_task(scraper=scraper, store=store), ScrapeSongLyricsRequest
+            ),
+        )
     )
 
-    publisher.register_producers([Producer(queue_name=Config.QUEUE_SCRAPE_LYRICS_URL)])
-
-    subscriber.register_consumers(
-        [
-            Consumer(
-                queue_name=Config.QUEUE_SEARCH_ARTISTS,
-                handler=subscriber.provide_handler(tasks.search_artists, SearchArtistRequest),
-            ),
-            Consumer(
-                queue_name=Config.QUEUE_GET_ARTIST_SONGS,
-                handler=subscriber.provide_handler(tasks.get_artist_songs, GetArtistSongsRequest),
-            ),
-            Consumer(
-                queue_name=Config.QUEUE_SCRAPE_LYRICS_URL,
-                handler=subscriber.provide_handler(tasks.scrape_lyrics, ScrapeSongLyricsRequest),
-            ),
-        ],
-    )
     subscriber.consume()
 
 

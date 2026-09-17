@@ -2,7 +2,7 @@ import os
 
 
 class Config:
-    GENIUS_BASE_URL = "https://api.genius.com"
+    GENIUS_API_BASE_URL = "https://api.genius.com"
     GENIUS_CLIENT_ID = os.getenv("GENIUS_CLIENT_ID")
     GENIUS_CLIENT_SECRET = os.getenv("GENIUS_CLIENT_SECRET")
     GENIUS_CLIENT_ACCESS_TOKEN = os.getenv("GENIUS_CLIENT_ACCESS_TOKEN")
@@ -13,3 +13,4 @@ class Config:
     QUEUE_SCRAPE_LYRICS_URL = "scrape_lyrics_url"
 
     DATABASE_URL = os.getenv("DATABASE_URL")
+    CACHE_URL = os.getenv("CACHE_URL")
