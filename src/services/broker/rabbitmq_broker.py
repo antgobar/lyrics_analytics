@@ -4,7 +4,7 @@ from pika import BlockingConnection, URLParameters
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.exceptions import AMQPConnectionError
 
-from common.logger import setup_logger
+from services.logger import setup_logger
 
 _CONNECTION_WAIT_TIME_S = 1
 _CONNECTION_ATTEMPTS = 5
@@ -12,7 +12,7 @@ _CONNECTION_ATTEMPTS = 5
 logger = setup_logger(__name__)
 
 
-class Connection:
+class RabbitMQBroker:
     def __init__(self, broker_url: str):
         self.broker_url = broker_url
 

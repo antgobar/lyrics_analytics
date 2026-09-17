@@ -8,8 +8,8 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 from pydantic import BaseModel
 
-from common.broker import Connection
-from common.logger import setup_logger
+from services.broker import Broker
+from services.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -32,17 +32,16 @@ class Consumer:
 
 
 class Subscriber:
-    def __init__(self, connection: Connection):
+    def __init__(self, connection: Broker):
         self.connection = connection
         self.consumers: list[Consumer] = []
 
-    def register_consumers(self, consumers: list[Consumer]):
-        for consumer in consumers:
-            consumer.channel = self.connection.connect()
-            self.consumers.append(consumer)
+    def register_consumer(self, consumer: Consumer):
+        consumer.channel = self.connection.connect()
+        self.consumers.append(consumer)
 
     def consume(self):
-        threads = []
+        threads: list[Thread] = []
 
         for queue in self.consumers:
             thread = Thread(target=self._start_consumer, args=(queue,))

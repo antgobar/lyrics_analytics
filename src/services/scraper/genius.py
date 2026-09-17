@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 _REPLACE_CHARS = ("\n", ",", ".", "(", ")", "/", '"', "\\", "-")
 
 
-class Scraper:
+class GeniusScraper:
     @classmethod
     def get_lyrics(cls, url: str) -> str:
         page = httpx.get(url)
@@ -40,4 +40,5 @@ class Scraper:
 
 
 if __name__ == "__main__":
-    lyrics = Scraper.get_lyrics("https://genius.com/Lukas-graham-7-years-lyrics")
+    lyrics = GeniusScraper.get_lyrics("https://genius.com/Lukas-graham-7-years-lyrics")
+    print(lyrics[:100])

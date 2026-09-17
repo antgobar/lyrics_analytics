@@ -21,7 +21,19 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  
+  valkey:
+    image: valkey/valkey:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    environment:
+      - VALKEY_USER=user
+      - VALKEY_PASSWORD=password
+      - VALKEY_PORT=6379
 
 volumes:
   rabbitmq_data:
   postgres_data:
+  valkey_data:

@@ -16,6 +16,7 @@ dependencies = [
     "ruff>=0.12.2",
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.35.0",
+    "valkey[libvalkey]>=6.1.1",
 ]
 
 [dependency-groups]
@@ -33,3 +34,9 @@ split-on-trailing-comma = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true
